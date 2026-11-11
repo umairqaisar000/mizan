@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Mizan logo" width="420">
+</p>
+
 # Mizan
 
 Mizan (ميزان, "balance" or "the scales") is a Claude Code plugin that makes AI-written code meet a human engineering standard. Install it once, switch it on per project, and every change goes through the same loop: plan, failing tests, implementation, browser QA, code and security review, and a plain-language change note. Every step is logged with who did it and when.

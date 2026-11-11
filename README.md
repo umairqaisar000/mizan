@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Mizan logo" width="420">
+  <img src=".claude-plugin/icon.png" alt="Mizan icon" width="160">
 </p>
 
 # Mizan

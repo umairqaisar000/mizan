@@ -1,0 +1,16 @@
+{
+  "name": "mizan",
+  "owner": {
+    "name": "Mizan contributors"
+  },
+  "plugins": [
+    {
+      "name": "mizan",
+      "source": "./",
+      "description": "Test-first development, browser QA, root cause analysis, security guardrails, audit log and change notes for Claude Code."
+    }
+  ],
+  "metadata": {
+    "description": "Mizan, an engineering harness for Claude Code."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "mizan",
+  "version": "0.1.0",
+  "description": "A balanced engineering harness for Claude Code: test-first development, browser QA in Chrome, deep root cause analysis, security and code-quality guardrails, an audit log of who changed what and when, and plain-language change notes.",
+  "author": {
+    "name": "Mizan contributors"
+  },
+  "keywords": [
+    "tdd",
+    "testing",
+    "browser-qa",
+    "security",
+    "code-quality",
+    "audit-log",
+    "rca"
+  ],
+  "license": "MIT"
+}

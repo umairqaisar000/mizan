@@ -1,0 +1,43 @@
+name: Mizan
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  mizan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: ${{ vars.MIZAN_REPOSITORY }}
+          ref: ${{ vars.MIZAN_REF || 'main' }}
+          token: ${{ secrets.MIZAN_TOKEN || github.token }}
+          path: .mizan-tool
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: |
+          if [ -f pnpm-lock.yaml ]; then corepack enable && pnpm install --frozen-lockfile
+          elif [ -f yarn.lock ]; then corepack enable && yarn install --immutable
+          elif [ -f bun.lock ] || [ -f bun.lockb ]; then npm install --global bun@1.2.23 && bun install --frozen-lockfile
+          elif [ -f package-lock.json ]; then npm ci
+          fi
+
+      - name: Scan the pull request for secrets
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --log-opts="origin/${{ github.base_ref }}..HEAD" --redact --exit-code 1
+
+      - name: Scan new code for security issues
+        run: pipx run semgrep==1.181.1 scan --config p/default --config p/owasp-top-ten --baseline-commit "origin/${{ github.base_ref }}" --error --metrics off
+
+      - name: Mizan checks
+        run: node .mizan-tool/scripts/mizan.mjs ci --base "origin/${{ github.base_ref }}"

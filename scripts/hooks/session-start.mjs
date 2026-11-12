@@ -20,7 +20,8 @@ const OPERATING_RULES = `Mizan operating rules (always apply):
 7. Report honestly. Say when tests fail, when something was skipped, and when you are unsure.
 8. Save tokens: search before reading, read only the lines you need, hand broad exploration to a subagent, do not re-run checks that already passed.
 9. When you need the user, run "mizan task block <question>" before asking, so the stop gate knows you are waiting.
-10. When the user corrects how you work, offer to save it with /mizan:learn.`;
+10. When the user corrects how you work, offer to save it with /mizan:learn.
+11. Auto mode: decide instead of asking, record each decision with "mizan decision --kind auto", tell the user what you decided, and keep going. Still stop for push, deploy, publish, data deletion, schema changes, new dependencies, and security or privacy decisions.`;
 
 runHookSafely(() => {
   readHookInput();
@@ -37,12 +38,12 @@ runHookSafely(() => {
   const handoffNotes = readHandoffNotes(paths.handoff);
 
   const sections = [
-    `Mizan is active. Strictness: ${config.strictness}. Working as: ${author.name}.`,
+    `Mizan is active. Strictness: ${config.strictness}. Default mode: ${config.mode}. Working as: ${author.name}.`,
     configError ? `WARNING: ${configError} Until it is fixed, Mizan blocks edits and commands. Tell the user and offer to fix .mizan/config.json.` : null,
     isAuthorKnown(author) ? null : 'The author is unknown. Ask the user to run: git config user.name "Their Name", so changes are attributed.',
     'CLI: .mizan/.local/mizan (run with no arguments for usage).',
     task
-      ? `Active task: ${task.id} "${task.title}" (${task.kind}), phase: ${task.phase}${task.blocked ? `, blocked on: ${task.blocked.reason}` : ''}. Continue it with the matching /mizan skill.`
+      ? `Active task: ${task.id} "${task.title}" (${task.kind}, ${task.mode ?? 'guided'} mode), phase: ${task.phase}${task.blocked ? `, blocked on: ${task.blocked.reason}` : ''}. Continue it with the matching /mizan skill.`
       : 'No active task.',
     recent.length > 0 ? `Recent activity:\n${recent.map((entry) => `- ${formatLogEntryLine(entry)}`).join('\n')}` : null,
     handoffNotes ? `Handoff notes from the last session:\n${handoffNotes}` : null,

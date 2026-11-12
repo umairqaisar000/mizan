@@ -88,6 +88,12 @@ const PATTERN_RULES = [
     pattern: /\bmizan\s+task\s+(?:back|clear)\b/,
     reason: 'This moves a Mizan task backwards or clears it, which reopens locked tests or drops the active task. The user decides.',
   },
+  {
+    decision: 'ask',
+    category: 'mizan-control',
+    pattern: /\bmizan\s+decisions\s+(?:accept|reverse)\b/,
+    reason: 'Reviewing an auto decision is the user\'s call, not Claude\'s.',
+  },
 ];
 
 export function classifyBashCommand(command, { deployCommandPatterns, lockedTestPatterns }) {

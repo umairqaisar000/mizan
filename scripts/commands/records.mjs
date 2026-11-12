@@ -5,10 +5,12 @@ import { requireInitializedContext } from '../lib/context.mjs';
 import { isoDate } from '../lib/dates.mjs';
 import { resolveAuthor } from '../lib/identity.mjs';
 import { loadActiveTask } from '../lib/tasks.mjs';
+import { recordAutoDecision } from './decisions.mjs';
 
 const DECISION_KINDS = {
   asked: 'Asked the user',
   inferred: 'Inferred (user was told)',
+  auto: 'Auto-decided',
 };
 
 export function runLog({ positional, flags }) {
@@ -29,8 +31,9 @@ export function runLog({ positional, flags }) {
 export function runDecision({ positional, flags }) {
   const { paths, config } = requireInitializedContext();
   const text = requireValue(positional.join(' '), 'the decision');
-  const kind = requireValue(flags.kind, `--kind (${Object.keys(DECISION_KINDS).join(' or ')})`);
+  const kind = requireValue(flags.kind, `--kind (${Object.keys(DECISION_KINDS).join(', ')})`);
   if (!(kind in DECISION_KINDS)) throw new Error(`Unknown decision kind "${kind}". Use: ${Object.keys(DECISION_KINDS).join(', ')}.`);
+  if (kind === 'auto') return recordAutoDecision({ paths, config }, { question: text, flags });
   const task = loadActiveTask(paths);
   const author = resolveAuthor(paths.projectRoot);
   const answer = typeof flags.answer === 'string' ? flags.answer : null;

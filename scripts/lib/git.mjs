@@ -33,3 +33,15 @@ export function changedFilesSince(projectRoot, baseRef) {
 export function fileContentAtRef(projectRoot, ref, relativePath) {
   return runGit(projectRoot, ['show', `${ref}:${relativePath}`]) ?? '';
 }
+
+export function isGitRepository(projectRoot) {
+  return runGit(projectRoot, ['rev-parse', '--is-inside-work-tree']) === 'true';
+}
+
+export function branchExists(projectRoot, branchName) {
+  return runGit(projectRoot, ['rev-parse', '--verify', '--quiet', `refs/heads/${branchName}`]) !== null;
+}
+
+export function createAndSwitchToBranch(projectRoot, branchName) {
+  return runGit(projectRoot, ['switch', '-c', branchName]) !== null;
+}

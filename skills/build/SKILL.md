@@ -1,12 +1,21 @@
 ---
 name: build
 description: Build a feature test-first with Mizan. Plan, critique, approval, failing tests, implementation with tests locked, browser QA, code and security review, plain-language change note. Use for any new feature or behaviour change.
-argument-hint: <what to build> [ticket id]
+argument-hint: <what to build> [ticket id] [--auto|--guided]
 ---
 
 The CLI is `.mizan/.local/mizan`. Run `.mizan/.local/mizan task next` to move each phase forward. It refuses until the phase's gate passes, and the hooks enforce the rest. Keep your own messages short. Agents return summaries, so do not re-read what they already read.
 
 If a task is already active, continue it from its current phase instead of starting another.
+
+## Mode: guided or auto
+
+Pass `--auto` or `--guided` to `mizan task start` if the user said which. Otherwise the project default from `.mizan/config.json` applies. The start output says which mode the task is in.
+
+- **Guided:** ask the user wherever these steps say to ask.
+- **Auto:** never wait for the user at an "ask" step. Pick the option you would recommend, record it with `mizan decision "<question>" --kind auto --category <product|technical|ux|data|money|legal> --chosen "<option>" --options "<a> | <b>" --reason "<why>"`, tell the user in one line what you decided, and continue. Fill in the plan's Approval section as "Auto mode: approved by Mizan on <date>, not yet reviewed by a person".
+- **Hard stops, even in auto mode:** `git push`, deploys, publishing, deleting data, database schema changes, new or upgraded dependencies, and any security or privacy decision. For these, run `mizan task block "<question with options and your recommendation>"`, ask the user, and wait. Mizan enforces most of these, and refuses to record security or privacy decisions as auto.
+- Auto mode works on its own branch and never commits or pushes. When the task closes, show the user the auto mode report from `mizan task next`, and offer (do not post) the Linear summary.
 
 ## 1. Plan
 - Start: `mizan task start <short-slug> --title "<title>" --kind feature [--ticket <ID>]`.

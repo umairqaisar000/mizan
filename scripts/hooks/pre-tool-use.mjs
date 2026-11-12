@@ -6,6 +6,7 @@ import { loadMizanContext } from '../lib/context.mjs';
 import { describeDependencyChange, findDependencyChanges } from '../lib/dependency-changes.mjs';
 import { isMizanControlFile, isProtectedFile, isSecretBearingFile, isTestFile } from '../lib/file-rules.mjs';
 import { askUserToConfirm, blockWithFeedback, continueWithoutOutput, readHookInput, runHookSafely } from '../lib/hook-io.mjs';
+import { matchesAnyGlob } from '../lib/glob.mjs';
 import { readJsonFileOrFallback, writeJsonFile } from '../lib/json-files.mjs';
 import { isInsideMizanDirectory, isOutsideProject, toProjectRelative } from '../lib/paths.mjs';
 import { addedLines, findSecretsInLines } from '../lib/secret-scanner.mjs';
@@ -105,6 +106,10 @@ function checkFileWrite(context, toolName, toolInput) {
   const task = loadActiveTask(paths);
   if (!task && policy.editWithoutTask === 'deny') {
     blockWithFeedback('Strict mode: every edit needs an active task. Start one with /mizan:build, /mizan:fix or /mizan:quick.');
+  }
+
+  if (task?.mode === 'auto' && matchesAnyGlob(relativePath, config.paths.schemaChanges)) {
+    askUserToConfirm(HOOK_EVENT, `Auto mode hard stop: ${relativePath} changes the database schema, which is hard to undo once it runs. The user decides.`);
   }
 
   const isTest = isTestFile(relativePath, config);

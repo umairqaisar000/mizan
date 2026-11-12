@@ -19,7 +19,9 @@ runHookSafely(() => {
   logEditsMadeOutsideATask(paths, config);
 
   const task = loadActiveTask(paths);
-  if (!policy.stopGate || !task || task.blocked || !PHASES_THAT_NEED_GREEN_TESTS.has(task.phase)) {
+  const isAutoTask = Boolean(task && task.mode === 'auto' && !task.blocked);
+  const needsGreenTests = Boolean(policy.stopGate && task && !task.blocked && PHASES_THAT_NEED_GREEN_TESTS.has(task.phase));
+  if (!isAutoTask && !needsGreenTests) {
     resetRetries(paths);
     continueWithoutOutput();
   }
@@ -31,7 +33,7 @@ runHookSafely(() => {
   }
 
   const problems = [];
-  if (config.commands.test) {
+  if (needsGreenTests && config.commands.test) {
     const result = runShellCommand(config.commands.test, { cwd: paths.projectRoot });
     if (!result.succeeded) problems.push(`Tests are failing in the "${task.phase}" phase:\n${result.outputTail}`);
   }
@@ -40,6 +42,9 @@ runHookSafely(() => {
     if (noteProblems.length > 0) problems.push(`The change note is not finished:\n${noteProblems.map((problem) => `- ${problem}`).join('\n')}`);
   }
 
+  if (isAutoTask) {
+    problems.push(`Auto mode: task ${task.id} is in the "${task.phase}" phase and not finished. Keep going without waiting for the user. Stop only for a hard stop (push, deploy, publish, data deletion, schema change, new dependency, security or privacy decision), and block the task before you do.`);
+  }
   if (problems.length === 0) {
     resetRetries(paths);
     continueWithoutOutput();

@@ -23,7 +23,7 @@ export function taskFile(paths, taskId, fileName) {
   return join(taskDirectory(paths, taskId), fileName);
 }
 
-export function createTask(paths, { slug, title, kind, ticket, author }) {
+export function createTask(paths, { slug, title, kind, ticket, author, mode, branch }) {
   if (!SLUG_PATTERN.test(slug)) {
     throw new Error(`Task slug "${slug}" must be lowercase words joined by hyphens, for example "password-reset".`);
   }
@@ -38,6 +38,8 @@ export function createTask(paths, { slug, title, kind, ticket, author }) {
     id: taskId,
     title,
     kind,
+    mode,
+    branch: branch ?? null,
     ticket: ticket ?? null,
     phase: TASK_KINDS[kind][0],
     hasUserInterface: null,

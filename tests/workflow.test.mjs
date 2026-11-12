@@ -173,7 +173,7 @@ test('session start briefs Claude with the rules and recent history', () => {
   const briefing = runHook('session-start', {});
   assert.equal(briefing.exitCode, 0);
   const context = JSON.parse(briefing.stdout).hookSpecificOutput.additionalContext;
-  assert.match(context, /Mizan is active\. Strictness: standard\. Working as: Test Person\./);
+  assert.match(context, /Mizan is active\. Strictness: standard\. Default mode: guided\. Working as: Test Person\./);
   assert.match(context, /Done: Add numbers/);
   assert.match(context, /No comments/);
   assert.ok(context.length < 4000, `briefing is ${context.length} characters`);

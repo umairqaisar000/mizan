@@ -1,4 +1,5 @@
 import { readJsonFile } from './json-files.mjs';
+import { TASK_MODES } from './modes.mjs';
 
 export const STRICTNESS_LEVELS = ['light', 'standard', 'strict'];
 
@@ -38,6 +39,7 @@ const POLICY_BY_STRICTNESS = {
 export const DEFAULT_CONFIG = {
   version: 1,
   strictness: 'standard',
+  mode: 'guided',
   commands: {
     test: null,
     e2e: null,
@@ -74,6 +76,15 @@ export const DEFAULT_CONFIG = {
       '.mizan/log.jsonl',
     ],
     protectedExceptions: ['**/.env.example', '**/.env.sample', '**/.env.template', '.env.example', '.env.sample', '.env.template'],
+    schemaChanges: [
+      '**/migrations/**',
+      '**/migration/**',
+      '**/prisma/schema.prisma',
+      '**/schema.sql',
+      '**/alembic/**',
+      'db/schema.rb',
+      '**/drizzle/**',
+    ],
     lintFileExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts', '.vue', '.svelte'],
   },
   log: {
@@ -182,6 +193,9 @@ export function loadConfig(paths) {
     throw new Error(`.mizan/config.json is not valid JSON (${error.message}).`);
   }
   const config = mergeDeep(DEFAULT_CONFIG, projectConfig);
+  if (!TASK_MODES.includes(config.mode)) {
+    throw new Error(`Unknown mode "${config.mode}" in .mizan/config.json. Use one of: ${TASK_MODES.join(', ')}.`);
+  }
   if (!STRICTNESS_LEVELS.includes(config.strictness)) {
     throw new Error(`Unknown strictness "${config.strictness}" in .mizan/config.json. Use one of: ${STRICTNESS_LEVELS.join(', ')}.`);
   }

@@ -1,6 +1,6 @@
 # Plan: {{title}}
 
-Task: {{taskId}} | Kind: {{kind}} | Ticket: {{ticket}} | Started {{date}} by {{author}}
+Task: {{taskId}} | Kind: {{kind}} | Mode: {{mode}} | Ticket: {{ticket}} | Started {{date}} by {{author}}
 
 ## Goal
 
@@ -44,4 +44,4 @@ Task: {{taskId}} | Kind: {{kind}} | Ticket: {{ticket}} | Started {{date}} by {{a
 
 ## Approval
 
-(fill in) Who approved this plan and when, for example "Approved by the project owner in chat on 2026-11-11".
+(fill in) Who approved this plan and when, for example "Approved by the project owner in chat on 2026-11-11". In auto mode: "Auto mode: approved by Mizan on <date>, not yet reviewed by a person".

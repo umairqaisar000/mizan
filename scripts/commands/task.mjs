@@ -4,6 +4,8 @@ import { requireValue } from '../lib/arguments.mjs';
 import { requireInitializedContext } from '../lib/context.mjs';
 import { isoDate, isoTimestamp } from '../lib/dates.mjs';
 import { resolveAuthor } from '../lib/identity.mjs';
+import { branchExists, createAndSwitchToBranch, isGitRepository } from '../lib/git.mjs';
+import { autoBranchName, modeFromFlags, resolveTaskMode } from '../lib/modes.mjs';
 import { changeNotePath, checkGateForLeavingPhase, rcaPath } from '../lib/phase-gates.mjs';
 import { toProjectRelative } from '../lib/paths.mjs';
 import {
@@ -20,6 +22,7 @@ import {
   taskFile,
 } from '../lib/tasks.mjs';
 import { writeTemplateIfMissing } from '../lib/templates.mjs';
+import { pendingAutoDecisions } from './decisions.mjs';
 import { writeAutomaticHandoff } from './handoff.mjs';
 
 const TEMPLATE_CREATED_ON_ENTERING_PHASE = {
@@ -46,19 +49,26 @@ const TASK_SUBCOMMANDS = {
     }
     const author = resolveAuthor(paths.projectRoot);
     const kind = flags.kind ?? 'feature';
-    const task = createTask(paths, {
+    const mode = resolveTaskMode(modeFromFlags(flags), config);
+    const createdTask = createTask(paths, {
       slug: requireValue(slug, 'task slug, for example "password-reset"'),
       title: requireValue(flags.title, '--title'),
       kind,
+      mode,
       ticket: typeof flags.ticket === 'string' ? flags.ticket : null,
       author,
     });
+    const branchResult = mode === 'auto' ? switchToAutoBranch(paths.projectRoot, createdTask.id) : { branch: null, note: null };
+    const task = { ...createdTask, branch: branchResult.branch };
+    saveTask(paths, task);
     const templateValues = templateValuesFor(task, author);
     writeTemplateIfMissing(taskFile(paths, task.id, 'plan.md'), 'plan.md', templateValues);
     if (kind === 'fix') writeTemplateIfMissing(rcaPath(paths, task.id), 'rca.md', templateValues);
-    appendLogEntry(paths, config, { type: 'task-started', summary: `Started ${kind}: ${task.title}`, taskId: task.id, ticket: task.ticket });
+    appendLogEntry(paths, config, { type: 'task-started', summary: `Started ${kind} (${mode} mode): ${task.title}`, taskId: task.id, ticket: task.ticket, details: task.branch ? { branch: task.branch } : null });
     return [
-      `Started task ${task.id} (${kind}). Phases: ${TASK_KINDS[kind].join(' -> ')}.`,
+      `Started task ${task.id} (${kind}, ${mode} mode). Phases: ${TASK_KINDS[kind].join(' -> ')}.`,
+      mode === 'auto' ? 'Auto mode: decide and continue without waiting, record every decision with "mizan decision --kind auto", and stop only for the hard stops.' : null,
+      branchResult.note,
       `Plan: ${toProjectRelative(paths.projectRoot, taskFile(paths, task.id, 'plan.md'))}`,
       kind === 'fix' ? `RCA: ${toProjectRelative(paths.projectRoot, rcaPath(paths, task.id))}` : null,
     ].filter(Boolean).join('\n');
@@ -181,7 +191,34 @@ function closeTask(context, task) {
     details: existsSync(notePath) ? { changeNote: toProjectRelative(paths.projectRoot, notePath) } : null,
   });
   writeAutomaticHandoff(context);
-  return `Task ${task.id} is done and logged. Change note: ${existsSync(notePath) ? toProjectRelative(paths.projectRoot, notePath) : 'none (light mode)'}.`;
+  const summary = `Task ${task.id} is done and logged. Change note: ${existsSync(notePath) ? toProjectRelative(paths.projectRoot, notePath) : 'none (light mode)'}.`;
+  return task.mode === 'auto' ? `${summary}${autoModeReport(paths, task)}` : summary;
+}
+
+function switchToAutoBranch(projectRoot, taskId) {
+  if (!isGitRepository(projectRoot)) {
+    return { branch: null, note: 'Not a git repository, so no branch was created. Changes stay in place.' };
+  }
+  const branch = autoBranchName(taskId);
+  if (branchExists(projectRoot, branch) || !createAndSwitchToBranch(projectRoot, branch)) {
+    return { branch: null, note: `Could not create branch ${branch}, so changes stay on the current branch. Tell the user.` };
+  }
+  return { branch, note: `Working on new branch ${branch}. Nothing will be committed or pushed.` };
+}
+
+function autoModeReport(paths, task) {
+  const decisions = pendingAutoDecisions(paths).filter((decision) => decision.taskId === task.id);
+  return [
+    '',
+    'Auto mode report',
+    `Branch: ${task.branch ?? 'unchanged (no branch was created)'}. Nothing was committed or pushed.`,
+    `Files changed: ${task.touchedFiles.join(', ') || 'none'}`,
+    task.evidence.red ? 'Tests: failing tests were written first, then made to pass.' : null,
+    task.evidence.green ? `Checks green: ${task.evidence.green.checks.join(', ')}.` : null,
+    decisions.length > 0 ? `Decisions made without asking (${decisions.length}), please review:` : 'No decisions were made without asking.',
+    ...decisions.map((decision) => `- [${decision.id}] ${decision.question} -> ${decision.chosen} (${decision.category}). Why: ${decision.reason}`),
+    decisions.length > 0 ? 'Accept or reverse each with "mizan decisions accept <id>" or "mizan decisions reverse <id> <reason>", or run /mizan:decisions.' : null,
+  ].filter((line) => line !== null).join('\n');
 }
 
 function createPhaseTemplate(paths, task) {
@@ -200,5 +237,6 @@ function templateValuesFor(task, author) {
     title: task.title,
     ticket: task.ticket,
     kind: task.kind,
+    mode: task.mode ?? 'guided',
   };
 }

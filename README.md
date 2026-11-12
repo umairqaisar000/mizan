@@ -57,6 +57,7 @@ Requirements: Node 18 or newer and git, on macOS or Linux. On Windows, use WSL.
 | `/mizan:build <feature>` | Any new feature or behaviour change |
 | `/mizan:fix <bug>` | Any bug, with root cause analysis |
 | `/mizan:quick <change>` | Small, low-risk changes (1 to 3 files, no business decisions) |
+| `/mizan:decisions` | Review, accept or reverse what auto mode decided on its own |
 | `/mizan:status` | What is in progress and blocked, and recent activity |
 | `/mizan:digest [days]` | A plain summary of who changed what |
 | `/mizan:handoff` | Leave notes for the next session or person |
@@ -65,6 +66,20 @@ Requirements: Node 18 or newer and git, on macOS or Linux. On Windows, use WSL.
 | `/mizan:doctor` | Check that the setup and tools are healthy |
 
 The agents and skills drive the CLI at `.mizan/.local/mizan`, which you can also run yourself.
+
+## Guided and auto mode
+
+| | Guided (default) | Auto |
+|---|---|---|
+| Plan approval | You approve it | Claude approves it and logs that no person has reviewed it yet |
+| Business and product questions | Claude asks you, with options and a recommendation | Claude picks its recommendation, logs it as an auto decision, tells you, and keeps going |
+| Security and privacy decisions | Asked | Still asked |
+| Push, deploy, publish, data deletion, schema changes, new dependencies | Asked | Still asked |
+| Tests first, tests locked, checks green, secrets and comments blocked | Enforced | Enforced |
+| Where the work goes | Your current branch | A new `mizan/<task>` branch, uncommitted, never pushed |
+| At the end | Summary | Summary plus a report of every decision made without asking |
+
+Set the project default with `"mode"` in `.mizan/config.json` (changing it needs your approval), or choose per task: `/mizan:build add CSV export --auto`. Review what auto mode decided with `/mizan:decisions`. Accepting or reversing a decision always needs a person, and every decision and review is in the audit log.
 
 ## Strictness
 

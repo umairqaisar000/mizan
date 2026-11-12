@@ -1,3 +1,5 @@
+const FLAGS_WITHOUT_VALUES = new Set(['auto', 'guided', 'ci', 'refresh-commands']);
+
 export function parseArguments(argv) {
   const positional = [];
   const flags = {};
@@ -11,6 +13,8 @@ export function parseArguments(argv) {
     const nextToken = argv[index + 1];
     if (inlineValue !== undefined) {
       flags[rawName] = inlineValue;
+    } else if (FLAGS_WITHOUT_VALUES.has(rawName)) {
+      flags[rawName] = true;
     } else if (nextToken !== undefined && !nextToken.startsWith('--')) {
       flags[rawName] = nextToken;
       index += 1;

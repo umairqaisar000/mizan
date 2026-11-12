@@ -16,6 +16,7 @@ export const LOG_ENTRY_TYPES = [
   'task-abandoned',
   'ad-hoc-edit',
   'decision',
+  'decision-reviewed',
   'rule-added',
   'note',
 ];

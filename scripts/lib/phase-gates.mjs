@@ -14,9 +14,15 @@ export function rcaPath(paths, taskId) {
   return join(paths.rca, `${taskId}.md`);
 }
 
+const PHASES_THAT_NEED_CONTEXT_FIRST = new Set(['investigate', 'plan']);
+
 export function checkGateForLeavingPhase({ paths, config, policy, task }) {
+  const contextProblems = PHASES_THAT_NEED_CONTEXT_FIRST.has(task.phase) && (task.contextSources ?? []).length > 0
+    ? findDocumentProblems(taskFile(paths, task.id, 'context.md'), 'context').map((problem) => `Context: ${problem}`)
+    : [];
   const gate = GATES_BY_PHASE_BEING_LEFT[task.phase];
-  return gate ? gate({ paths, config, policy, task }) : { problems: [], evidence: null };
+  const result = gate ? gate({ paths, config, policy, task }) : { problems: [], evidence: null };
+  return { problems: [...contextProblems, ...result.problems], evidence: contextProblems.length > 0 ? null : result.evidence };
 }
 
 const GATES_BY_PHASE_BEING_LEFT = {

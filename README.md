@@ -81,6 +81,16 @@ The agents and skills drive the CLI at `.mizan/.local/mizan`, which you can also
 
 Set the project default with `"mode"` in `.mizan/config.json` (changing it needs your approval), or choose per task: `/mizan:build add CSV export --auto`. Review what auto mode decided with `/mizan:decisions`. Accepting or reversing a decision always needs a person, and every decision and review is in the audit log.
 
+## Reading tickets, meetings and email
+
+A project can let Claude read background for each task, read only. Each source is off until switched on in `.mizan/config.json`:
+
+```json
+"context": { "linear": true, "granola": false, "gmail": false }
+```
+
+When a task starts with any source on, a context agent searches them for the ticket and the feature. It writes a short, cited summary to the task's `context.md`: what is being asked, the requirements, the decisions already made (which are then treated as settled, in auto mode too), and the open questions. The task cannot leave its first phase until that summary is filled in. The agent never posts, replies, sends or changes anything. It summarizes instead of copying, and leaves out personal, patient and production details. Each source needs its connector (Linear, Granola, Gmail) to be available in Claude. If one is missing, the summary says so.
+
 ## Strictness
 
 Set in `.mizan/config.json`.

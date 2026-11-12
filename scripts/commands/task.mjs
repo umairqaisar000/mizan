@@ -5,6 +5,7 @@ import { requireInitializedContext } from '../lib/context.mjs';
 import { isoDate, isoTimestamp } from '../lib/dates.mjs';
 import { resolveAuthor } from '../lib/identity.mjs';
 import { branchExists, createAndSwitchToBranch, isGitRepository } from '../lib/git.mjs';
+import { enabledContextSources } from '../lib/context-sources.mjs';
 import { autoBranchName, modeFromFlags, resolveTaskMode } from '../lib/modes.mjs';
 import { changeNotePath, checkGateForLeavingPhase, rcaPath } from '../lib/phase-gates.mjs';
 import { toProjectRelative } from '../lib/paths.mjs';
@@ -59,16 +60,19 @@ const TASK_SUBCOMMANDS = {
       author,
     });
     const branchResult = mode === 'auto' ? switchToAutoBranch(paths.projectRoot, createdTask.id) : { branch: null, note: null };
-    const task = { ...createdTask, branch: branchResult.branch };
+    const contextSources = enabledContextSources(config);
+    const task = { ...createdTask, branch: branchResult.branch, contextSources };
     saveTask(paths, task);
     const templateValues = templateValuesFor(task, author);
     writeTemplateIfMissing(taskFile(paths, task.id, 'plan.md'), 'plan.md', templateValues);
+    if (contextSources.length > 0) writeTemplateIfMissing(taskFile(paths, task.id, 'context.md'), 'context.md', templateValues);
     if (kind === 'fix') writeTemplateIfMissing(rcaPath(paths, task.id), 'rca.md', templateValues);
     appendLogEntry(paths, config, { type: 'task-started', summary: `Started ${kind} (${mode} mode): ${task.title}`, taskId: task.id, ticket: task.ticket, details: task.branch ? { branch: task.branch } : null });
     return [
       `Started task ${task.id} (${kind}, ${mode} mode). Phases: ${TASK_KINDS[kind].join(' -> ')}.`,
       mode === 'auto' ? 'Auto mode: decide and continue without waiting, record every decision with "mizan decision --kind auto", and stop only for the hard stops.' : null,
       branchResult.note,
+      contextSources.length > 0 ? `Gather context first (read only, ${contextSources.join(', ')}): ${toProjectRelative(paths.projectRoot, taskFile(paths, task.id, 'context.md'))}` : null,
       `Plan: ${toProjectRelative(paths.projectRoot, taskFile(paths, task.id, 'plan.md'))}`,
       kind === 'fix' ? `RCA: ${toProjectRelative(paths.projectRoot, rcaPath(paths, task.id))}` : null,
     ].filter(Boolean).join('\n');
@@ -238,5 +242,6 @@ function templateValuesFor(task, author) {
     ticket: task.ticket,
     kind: task.kind,
     mode: task.mode ?? 'guided',
+    contextSources: (task.contextSources ?? []).join(', ') || 'none',
   };
 }

@@ -9,6 +9,7 @@ import { askUserToConfirm, blockWithFeedback, continueWithoutOutput, readHookInp
 import { matchesAnyGlob } from '../lib/glob.mjs';
 import { readJsonFileOrFallback, writeJsonFile } from '../lib/json-files.mjs';
 import { isInsideMizanDirectory, isOutsideProject, toProjectRelative } from '../lib/paths.mjs';
+import { findPersonalData } from '../lib/personal-data.mjs';
 import { addedLines, findSecretsInLines } from '../lib/secret-scanner.mjs';
 import { PHASES_WHERE_SCOPE_IS_OPEN, PHASES_WITH_LOCKED_TESTS, isPlannedFile, loadActiveTask } from '../lib/tasks.mjs';
 
@@ -101,7 +102,10 @@ function checkFileWrite(context, toolName, toolInput) {
   if (isMizanControlFile(relativePath)) {
     askUserToConfirm(HOOK_EVENT, `This edits ${relativePath}, which controls Mizan's own guardrails (strictness, task phase or scope). The user decides.`);
   }
-  if (isInsideMizanDirectory(relativePath)) return;
+  if (isInsideMizanDirectory(relativePath)) {
+    checkMizanDocument(toolName, toolInput, filePath, relativePath);
+    return;
+  }
 
   const task = loadActiveTask(paths);
   if (!task && policy.editWithoutTask === 'deny') {
@@ -147,6 +151,19 @@ function checkFileWrite(context, toolName, toolInput) {
     if (changes.length > 0) {
       askUserToConfirm(HOOK_EVENT, `This changes dependencies: ${changes.map(describeDependencyChange).join('; ')}. New or upgraded packages need the user's approval.`);
     }
+  }
+}
+
+function checkMizanDocument(toolName, toolInput, filePath, relativePath) {
+  if (!relativePath.endsWith('.md')) return;
+  const previousContent = existsSync(filePath) ? readFileSync(filePath, 'utf8') : '';
+  const nextContent = contentAfterTool(toolName, toolInput, previousContent);
+  if (nextContent === null) return;
+  const added = addedLines(previousContent, nextContent);
+  blockIfSecrets(added, false);
+  const personalData = findPersonalData(added);
+  if (personalData.length > 0) {
+    blockWithFeedback(`${relativePath} is committed to git, and this edit adds what looks like personal data (${personalData.join(', ')}). Describe it in general terms instead, for example "one patient's claim" or "the ops lead".`);
   }
 }
 

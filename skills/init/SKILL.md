@@ -11,7 +11,8 @@ description: Set up Mizan in an existing project. Detects the stack and commands
    Also ask for the default mode, recommending `guided`:
    - guided: Claude asks before plans and business decisions.
    - auto: Claude decides, logs each decision for review, and only stops for push, deploy, publish, data deletion, schema changes, new dependencies, and security or privacy decisions. Any single task can still be switched with --auto or --guided.
-   Edit `.mizan/config.json` with the answers (`strictness`, `mode`, `commands`). A missing `commands.test` must be resolved before any task can run.
+   Ask which context sources Claude may read, read only, at the start of each task: Linear (recommended on), Granola meetings, and Gmail. Explain that Granola and Gmail can contain personal or patient details, which Mizan summarizes and never copies, and that nothing is ever posted or sent. Each source needs its connector to be available in Claude.
+   Edit `.mizan/config.json` with the answers (`strictness`, `mode`, `commands`, and `context.linear`, `context.granola`, `context.gmail`). A missing `commands.test` must be resolved before any task can run.
 3. Write `.mizan/project.md`. Delegate the exploration to an Explore agent (medium thoroughness) and ask it for: what the project is, stack, how to run it, folder structure, existing conventions (naming, state, data fetching, styling, errors, tests), reusable building blocks, and sensitive areas. Keep the profile under 80 lines. It is read at every planning step, so every line must earn its place.
 4. Run `.mizan/.local/mizan doctor` and summarize anything marked FIX in plain words.
 5. Tell the user what Mizan will now do in this project, in five lines or fewer, and that everything is uncommitted for them to review.

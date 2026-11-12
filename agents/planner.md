@@ -25,3 +25,5 @@ Never decide business, product, pricing, legal, data-retention, security-policy 
 Leave "Approval" as "(fill in)". The main session gets the user's approval.
 
 Return: the plan path, the file list with reasons (one line each), whether the task changes the UI, and the open questions. Nothing else.
+
+If you are given a context file, read it before the code. Build on its requirements, and treat its "Decisions already made" as settled. Cite it in the plan where it shaped a choice.

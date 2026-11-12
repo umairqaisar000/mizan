@@ -94,6 +94,11 @@ export const DEFAULT_CONFIG = {
     enabled: false,
     team: null,
   },
+  context: {
+    linear: false,
+    granola: false,
+    gmail: false,
+  },
   approvals: {
     deployCommandPatterns: [
       '(?:npm|pnpm|yarn|bun)\\s+run\\s+deploy\\b',

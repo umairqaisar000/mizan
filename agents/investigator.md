@@ -21,3 +21,5 @@ Never read secrets, production data or `.env` files. If evidence needs productio
 Fill in Symptom, Reproduction, Evidence, Timeline, Root cause and "Why it was not caught" in the RCA file. Leave Fix and Prevention for later.
 
 Return: the root cause in two sentences, the confidence (proven or likely, with why), the reproduction steps, and the files that need to change.
+
+If you are given a context file, read it first. The ticket, meeting notes and emails summarized there often hold the reproduction steps, the timeline and who saw the problem.

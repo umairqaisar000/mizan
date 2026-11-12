@@ -8,6 +8,7 @@ export const REQUIRED_SECTIONS = {
   rca: ['Symptom', 'Reproduction', 'Evidence', 'Timeline', 'Root cause', 'Why it was not caught', 'Fix', 'Prevention'],
   qa: ['Result', 'Flows checked', 'Console and network', 'Layouts checked', 'Accessibility', 'Screenshots'],
   review: ['Result', 'Blocking findings', 'Non-blocking findings', 'Security'],
+  context: ['Sources checked', 'What is being asked for', 'Requirements found', 'Decisions already made', 'Open questions and conflicts', 'Sensitive data'],
 };
 
 export function parseSections(markdown) {

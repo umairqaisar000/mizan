@@ -21,3 +21,5 @@ Look for:
 Return exactly:
 VERDICT: APPROVE or CHANGES
 Then a numbered list of findings, each with the evidence (file and line) and the concrete fix. If APPROVE, list at most three optional suggestions. Be brief.
+
+If you are given a context file, check that the plan meets every requirement in it and does not contradict any decision already made.

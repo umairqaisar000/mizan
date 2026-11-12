@@ -15,6 +15,10 @@ Pass `--auto` or `--guided` to `mizan task start` if the user said which. Otherw
 - **Hard stops, even in auto mode:** `git push`, deploys, publishing, deleting data, database schema changes, new or upgraded dependencies, and any security or privacy decision. For these, run `mizan task block "<question with options and your recommendation>"`, ask the user, and wait. Mizan enforces most of these, and refuses to record security or privacy decisions as auto.
 - Auto mode works on its own branch and never commits or pushes. When the task closes, show the user the auto mode report from `mizan task next`, and offer (do not post) the Linear summary.
 
+## Context first
+
+If `mizan task start` printed "Gather context first", send the `mizan:context-gatherer` agent the task title, the ticket id, the enabled sources, and the context file path before anything else. Then pass the context file path to every later agent (planner, investigator, critic, test-writer, scribe). Decisions listed under "Decisions already made" are settled: do not ask about them again, and in auto mode do not decide them differently. If the context file is not filled in, `mizan task next` will refuse to leave the first phase.
+
 ## 1. Investigate
 - Start: `mizan task start <slug> --title "<title>" --kind fix [--ticket <ID>]`. This creates the RCA file in `.mizan/rca/`.
 - Send `mizan:investigator` the bug report, the ticket text, and the RCA path.

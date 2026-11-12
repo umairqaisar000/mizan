@@ -15,6 +15,8 @@ Pass `--auto` or `--guided` to `mizan task start` if the user said which. Otherw
 - **Hard stops, even in auto mode:** `git push`, deploys, publishing, deleting data, database schema changes, new or upgraded dependencies, and any security or privacy decision. For these, run `mizan task block "<question with options and your recommendation>"`, ask the user, and wait. Mizan enforces most of these, and refuses to record security or privacy decisions as auto.
 - Auto mode works on its own branch and never commits or pushes. When the task closes, show the user the auto mode report from `mizan task next`, and offer (do not post) the Linear summary.
 
+If `mizan task start` printed "Gather context first", read only the Linear ticket yourself (quick changes skip meetings and email), and fill in the context file briefly before planning. Never post or change anything in Linear.
+
 1. `mizan task start <slug> --title "<title>" --kind quick`. Fill in the plan yourself, briefly: one line per section is fine. Search for existing code first. Tell the user the plan in three lines and get a yes (in auto mode, state it and continue). Register scope, set UI yes or no, then `mizan task next`.
 2. Write the failing test yourself (follow `.mizan/.local/standards/testing.md`), then `mizan task next`.
 3. Implement (follow `.mizan/.local/standards/code.md`), then `mizan task next`.

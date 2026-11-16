@@ -7,6 +7,7 @@ import { runHandoff } from './commands/handoff.mjs';
 import { runInit } from './commands/init.mjs';
 import { runDecision, runLog, runRule } from './commands/records.mjs';
 import { runDigest, runStatus, runWhoami } from './commands/reports.mjs';
+import { runQuestions } from './commands/questions.mjs';
 import { runScope } from './commands/scope.mjs';
 import { runTask } from './commands/task.mjs';
 
@@ -17,6 +18,7 @@ const COMMANDS = {
   log: { run: runLog, usage: 'log <summary> [--files a,b]' },
   decision: { run: runDecision, usage: 'decision <text> --kind asked|inferred [--answer <answer>] | --kind auto --category <category> --chosen <option> --options "a | b" --reason <why>' },
   decisions: { run: runDecisions, usage: 'decisions [list] | accept <id> [note] | reverse <id> <reason>' },
+  questions: { run: runQuestions, usage: 'questions [list] | add <question> --category <category> --options "a | b" --recommend <option> --why <why> | posted --link <url> | answer <Q-id> --by <who> --answer <what they said> --decision <what you will do> --link <url>' },
   rule: { run: runRule, usage: 'rule add <rule text>' },
   status: { run: runStatus, usage: 'status' },
   digest: { run: runDigest, usage: 'digest [--days 7]' },

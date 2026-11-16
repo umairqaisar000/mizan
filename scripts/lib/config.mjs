@@ -93,6 +93,8 @@ export const DEFAULT_CONFIG = {
   linear: {
     enabled: false,
     team: null,
+    askQuestions: false,
+    answerers: [],
   },
   context: {
     linear: false,

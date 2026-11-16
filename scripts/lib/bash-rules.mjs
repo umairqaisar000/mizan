@@ -94,6 +94,12 @@ const PATTERN_RULES = [
     pattern: /\bmizan\s+decisions\s+(?:accept|reverse)\b/,
     reason: 'Reviewing an auto decision is the user\'s call, not Claude\'s.',
   },
+  {
+    decision: 'ask',
+    category: 'mizan-control',
+    pattern: /\bmizan\s+task\s+unblock\b.*--skip-linear\b/,
+    reason: 'This stops waiting for the answers asked on Linear. The user decides.',
+  },
 ];
 
 export function classifyBashCommand(command, { deployCommandPatterns, lockedTestPatterns }) {

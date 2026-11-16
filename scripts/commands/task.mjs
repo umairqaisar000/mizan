@@ -82,7 +82,9 @@ const TASK_SUBCOMMANDS = {
     const { paths, config, policy } = context;
     const task = requireActiveTask(paths);
     if (task.blocked) {
-      throw new Error(`Task is blocked: ${task.blocked.reason}. Run "mizan task unblock" once the user has answered.`);
+      throw new Error(task.blocked.waitingOn === 'linear'
+        ? `Task is blocked: ${task.blocked.reason}. Run /mizan:resume to check the ticket for answers.`
+        : `Task is blocked: ${task.blocked.reason}. Run "mizan task unblock" once the user has answered.`);
     }
     const nextPhase = nextPhaseFor(task);
     if (!nextPhase) throw new Error(`Task ${task.id} is already done.`);
@@ -120,10 +122,13 @@ const TASK_SUBCOMMANDS = {
     return `Task ${task.id} is blocked until the user answers: ${reason}`;
   },
 
-  unblock: ({ arguments: answerWords, context }) => {
+  unblock: ({ arguments: answerWords, flags, context }) => {
     const { paths, config } = context;
     const task = requireActiveTask(paths);
     if (!task.blocked) return `Task ${task.id} was not blocked.`;
+    if (task.blocked.waitingOn === 'linear' && flags['skip-linear'] !== true) {
+      throw new Error(`${task.blocked.reason}. Record each answer with "mizan questions answer", or, only if the user says to stop waiting, run "mizan task unblock --skip-linear <their answer>".`);
+    }
     const answer = answerWords.join(' ');
     saveTask(paths, { ...task, blocked: null });
     appendLogEntry(paths, config, { type: 'task-unblocked', summary: answer ? `Answered: ${answer}` : 'Unblocked', taskId: task.id, ticket: task.ticket });
@@ -212,6 +217,7 @@ function switchToAutoBranch(projectRoot, taskId) {
 
 function autoModeReport(paths, task) {
   const decisions = pendingAutoDecisions(paths).filter((decision) => decision.taskId === task.id);
+  const answered = (task.questions ?? []).filter((entry) => entry.status === 'answered');
   return [
     '',
     'Auto mode report',
@@ -219,6 +225,8 @@ function autoModeReport(paths, task) {
     `Files changed: ${task.touchedFiles.join(', ') || 'none'}`,
     task.evidence.red ? 'Tests: failing tests were written first, then made to pass.' : null,
     task.evidence.green ? `Checks green: ${task.evidence.green.checks.join(', ')}.` : null,
+    answered.length > 0 ? `Questions answered on ${task.ticket} (${answered.length}):` : null,
+    ...answered.map((entry) => `- [${entry.id}] ${entry.question} ${entry.answeredBy} said: ${entry.answer}. Done: ${entry.decision}`),
     decisions.length > 0 ? `Decisions made without asking (${decisions.length}), please review:` : 'No decisions were made without asking.',
     ...decisions.map((decision) => `- [${decision.id}] ${decision.question} -> ${decision.chosen} (${decision.category}). Why: ${decision.reason}`),
     decisions.length > 0 ? 'Accept or reverse each with "mizan decisions accept <id>" or "mizan decisions reverse <id> <reason>", or run /mizan:decisions.' : null,

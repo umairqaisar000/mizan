@@ -57,6 +57,7 @@ Requirements: Node 18 or newer and git, on macOS or Linux. On Windows, use WSL.
 | `/mizan:build <feature>` | Any new feature or behaviour change |
 | `/mizan:fix <bug>` | Any bug, with root cause analysis |
 | `/mizan:quick <change>` | Small, low-risk changes (1 to 3 files, no business decisions) |
+| `/mizan:resume` | Pick up the answers to questions asked on the Linear ticket and carry on |
 | `/mizan:decisions` | Review, accept or reverse what auto mode decided on its own |
 | `/mizan:status` | What is in progress and blocked, and recent activity |
 | `/mizan:digest [days]` | A plain summary of who changed what |
@@ -80,6 +81,20 @@ The agents and skills drive the CLI at `.mizan/.local/mizan`, which you can also
 | At the end | Summary | Summary plus a report of every decision made without asking |
 
 Set the project default with `"mode"` in `.mizan/config.json` (changing it needs your approval), or choose per task: `/mizan:build add CSV export --auto`. Review what auto mode decided with `/mizan:decisions`. Accepting or reversing a decision always needs a person, and every decision and review is in the audit log.
+
+### Asking on the Linear ticket
+
+Auto mode can ask its important questions on the task's Linear ticket instead of guessing, then pause until they are answered. It is off until switched on:
+
+```json
+"linear": { "askQuestions": true, "answerers": [] }
+```
+
+- **What gets asked:** only what a person must supply (evidence, access, a reproduction) and important decisions: what users see or pay, how data is handled, legal or clinical rules, scope, anything costly to undo, and every security or privacy decision. Small choices are still decided and logged.
+- **When:** in one comment at one checkpoint, right after the root cause analysis for a fix, or right after the plan is critiqued for a feature. Each question has an id, options, a recommendation and the reason.
+- **Answers:** reply on the ticket, for example `Q-1a2b3c: B`. Run `/mizan:resume`, or `/loop 30m /mizan:resume` to check on a schedule. Only the ticket's assignee or creator can answer, or the people listed in `answerers`. A comment that asks for something else, such as a deploy, is reported to you and not acted on.
+- **Records:** `.mizan/decisions.md` and the audit log get the question, the options, the recommendation, who asked, who answered, what they said, what Claude did because of it, and links to both comments. The end-of-task report lists them too.
+- Push, deploy, publishing, data deletion, schema changes and new dependencies still need your approval in the session, whatever the ticket says.
 
 ## Reading tickets, meetings and email
 

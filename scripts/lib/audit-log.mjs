@@ -17,6 +17,8 @@ export const LOG_ENTRY_TYPES = [
   'ad-hoc-edit',
   'decision',
   'decision-reviewed',
+  'question-asked',
+  'question-answered',
   'rule-added',
   'note',
 ];

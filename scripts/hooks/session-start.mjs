@@ -43,7 +43,7 @@ runHookSafely(() => {
     isAuthorKnown(author) ? null : 'The author is unknown. Ask the user to run: git config user.name "Their Name", so changes are attributed.',
     'CLI: .mizan/.local/mizan (run with no arguments for usage).',
     task
-      ? `Active task: ${task.id} "${task.title}" (${task.kind}, ${task.mode ?? 'guided'} mode), phase: ${task.phase}${task.blocked ? `, blocked on: ${task.blocked.reason}` : ''}. Continue it with the matching /mizan skill.`
+      ? `Active task: ${task.id} "${task.title}" (${task.kind}, ${task.mode ?? 'guided'} mode), phase: ${task.phase}${task.blocked ? `, blocked on: ${task.blocked.reason}` : ''}. ${task.blocked?.waitingOn === 'linear' ? 'It is waiting for answers on Linear: run /mizan:resume to check the ticket.' : 'Continue it with the matching /mizan skill.'}`
       : 'No active task.',
     recent.length > 0 ? `Recent activity:\n${recent.map((entry) => `- ${formatLogEntryLine(entry)}`).join('\n')}` : null,
     handoffNotes ? `Handoff notes from the last session:\n${handoffNotes}` : null,

@@ -13,11 +13,11 @@ Pass `--auto` or `--guided` to `mizan task start` if the user said which. Otherw
 - **Guided:** ask the user wherever these steps say to ask.
 - **Auto:** never wait for the user at an "ask" step. Pick the option you would recommend, record it with `mizan decision "<question>" --kind auto --category <product|technical|ux|data|money|legal> --chosen "<option>" --options "<a> | <b>" --reason "<why>"`, tell the user in one line what you decided, and continue. Fill in the plan's Approval section as "Auto mode: approved by Mizan on <date>, not yet reviewed by a person".
 - **Hard stops, even in auto mode:** `git push`, deploys, publishing, deleting data, database schema changes, new or upgraded dependencies, and any security or privacy decision. For these, run `mizan task block "<question with options and your recommendation>"`, ask the user, and wait. Mizan enforces most of these, and refuses to record security or privacy decisions as auto.
-- Auto mode works on its own branch and never commits or pushes. When the task closes, show the user the auto mode report from `mizan task next`, and offer (do not post) the Linear summary.
+- Auto mode works on its own branch and never commits or pushes. When the task closes, show the user the auto mode report from `mizan task next`, and offer (do not post) a summary on the ticket.
 
-Quick changes never ask on Linear: if one needs an important decision, it is not a quick change.
+Quick changes never ask on the ticket: if one needs an important decision, it is not a quick change.
 
-If `mizan task start` printed "Gather context first", read only the Linear ticket yourself (quick changes skip meetings and email), and fill in the context file briefly before planning. Never post or change anything in Linear.
+If `mizan task start` printed "Gather context first", read only the ticket yourself (quick changes skip meetings and email), and fill in the context file briefly before planning. Never post or change anything in the tracker.
 
 1. `mizan task start <slug> --title "<title>" --kind quick`. Fill in the plan yourself, briefly: one line per section is fine. Search for existing code first. Tell the user the plan in three lines and get a yes (in auto mode, state it and continue). Register scope, set UI yes or no, then `mizan task next`.
 2. Write the failing test yourself (follow `.mizan/.local/standards/testing.md`), then `mizan task next`.

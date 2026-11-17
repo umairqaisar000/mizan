@@ -3,6 +3,28 @@ import { TASK_MODES } from './modes.mjs';
 
 export const STRICTNESS_LEVELS = ['light', 'standard', 'strict'];
 
+export const TRACKERS = {
+  linear: { label: 'Linear', connector: 'Linear' },
+  jira: { label: 'Jira', connector: 'Atlassian' },
+  github: { label: 'GitHub Issues', cli: 'gh', login: 'gh auth login' },
+  gitlab: { label: 'GitLab Issues', cli: 'glab', login: 'glab auth login' },
+  'azure-devops': { label: 'Azure DevOps', connector: 'Azure DevOps' },
+  asana: { label: 'Asana', connector: 'Asana' },
+  clickup: { label: 'ClickUp', connector: 'ClickUp' },
+  shortcut: { label: 'Shortcut', connector: 'Shortcut' },
+  monday: { label: 'monday.com', connector: 'monday.com' },
+  notion: { label: 'Notion', connector: 'Notion' },
+  other: { label: 'the tracker', connector: null },
+};
+
+export function trackerLabel(config) {
+  return TRACKERS[config.tracker.name].label;
+}
+
+export function isTrackerUsed(config) {
+  return Boolean(config.context.tracker || config.tracker.askQuestions || config.tracker.postUpdates);
+}
+
 const POLICY_BY_STRICTNESS = {
   light: {
     outOfScopeEdit: 'off',
@@ -90,14 +112,14 @@ export const DEFAULT_CONFIG = {
   log: {
     includeEmail: false,
   },
-  linear: {
-    enabled: false,
-    team: null,
+  tracker: {
+    name: 'linear',
+    postUpdates: false,
     askQuestions: false,
     answerers: [],
   },
   context: {
-    linear: false,
+    tracker: false,
     granola: false,
     gmail: false,
   },
@@ -199,7 +221,10 @@ export function loadConfig(paths) {
   } catch (error) {
     throw new Error(`.mizan/config.json is not valid JSON (${error.message}).`);
   }
-  const config = mergeDeep(DEFAULT_CONFIG, projectConfig);
+  const config = mergeDeep(DEFAULT_CONFIG, withLegacyLinearSettings(projectConfig));
+  if (!Object.hasOwn(TRACKERS, config.tracker.name)) {
+    throw new Error(`Unknown tracker "${config.tracker.name}" in .mizan/config.json. Use one of: ${Object.keys(TRACKERS).join(', ')}.`);
+  }
   if (!TASK_MODES.includes(config.mode)) {
     throw new Error(`Unknown mode "${config.mode}" in .mizan/config.json. Use one of: ${TASK_MODES.join(', ')}.`);
   }
@@ -207,6 +232,18 @@ export function loadConfig(paths) {
     throw new Error(`Unknown strictness "${config.strictness}" in .mizan/config.json. Use one of: ${STRICTNESS_LEVELS.join(', ')}.`);
   }
   return config;
+}
+
+function withLegacyLinearSettings(projectConfig) {
+  const { linear, context, ...rest } = projectConfig;
+  if (linear === undefined && context?.linear === undefined) return projectConfig;
+  const { linear: legacyContextLinear, ...otherContext } = context ?? {};
+  const legacyTracker = linear ? { postUpdates: linear.enabled, askQuestions: linear.askQuestions, answerers: linear.answerers } : {};
+  return {
+    ...rest,
+    tracker: { name: 'linear', ...legacyTracker, ...rest.tracker },
+    context: { tracker: legacyContextLinear, ...otherContext },
+  };
 }
 
 export function policyFor(config) {

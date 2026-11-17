@@ -3,13 +3,19 @@ import { randomBytes } from 'node:crypto';
 import { appendLogEntry } from '../lib/audit-log.mjs';
 import { requireValue } from '../lib/arguments.mjs';
 import { requireInitializedContext } from '../lib/context.mjs';
+import { trackerLabel } from '../lib/config.mjs';
 import { isoDate, isoTimestamp } from '../lib/dates.mjs';
 import { resolveAuthor } from '../lib/identity.mjs';
 import { DECISION_CATEGORIES } from '../lib/modes.mjs';
 import { findPersonalData } from '../lib/personal-data.mjs';
 import { requireActiveTask, saveTask } from '../lib/tasks.mjs';
 
-export const WAITING_ON_LINEAR = 'linear';
+const WAITING_ON_TRACKER = 'tracker';
+const WAITING_ON_TRACKER_BEFORE_0_5 = 'linear';
+
+export function isWaitingOnTracker(blocked) {
+  return blocked?.waitingOn === WAITING_ON_TRACKER || blocked?.waitingOn === WAITING_ON_TRACKER_BEFORE_0_5;
+}
 
 export function runQuestions({ positional, flags }) {
   const [subcommand = 'list', ...rest] = positional;
@@ -21,7 +27,7 @@ export function runQuestions({ positional, flags }) {
 const QUESTION_SUBCOMMANDS = {
   add: ({ arguments: questionWords, flags, context }) => {
     const { paths, config } = context;
-    const task = requireTaskThatCanAskOnLinear(context);
+    const task = requireTaskThatCanAskOnTracker(context);
     const question = requireValue(questionWords.join(' '), 'the question');
     const category = requireValue(flags.category, `--category (${DECISION_CATEGORIES.join(', ')})`);
     if (!DECISION_CATEGORIES.includes(category)) throw new Error(`Unknown category "${category}". Use one of: ${DECISION_CATEGORIES.join(', ')}.`);
@@ -31,29 +37,29 @@ const QUESTION_SUBCOMMANDS = {
     if (!options.includes(recommendation)) throw new Error(`--recommend must be one of the options: ${options.join('; ')}.`);
     const why = requireValue(flags.why, '--why (why it matters and why you recommend that option, in one or two sentences)');
     const personalData = findPersonalData([question, why, ...options]);
-    if (personalData.length > 0) throw new Error(`This question would post personal data (${personalData.join(', ')}) to Linear. Describe it in general terms instead.`);
+    if (personalData.length > 0) throw new Error(`This question would post personal data (${personalData.join(', ')}) to ${trackerLabel(config)}. Describe it in general terms instead.`);
 
     const entry = { id: `Q-${randomBytes(3).toString('hex')}`, question, category, options, recommendation, why, status: 'draft', askedBy: resolveAuthor(paths.projectRoot).name };
     saveTask(paths, { ...task, questions: [...(task.questions ?? []), entry] });
-    appendLogEntry(paths, config, { type: 'note', summary: `Drafted question ${entry.id} for Linear: ${question}`, taskId: task.id, ticket: task.ticket });
+    appendLogEntry(paths, config, { type: 'note', summary: `Drafted question ${entry.id} for ${trackerLabel(config)}: ${question}`, taskId: task.id, ticket: task.ticket });
     return `Question ${entry.id} drafted. Add any others for this checkpoint, post them all in one comment on ${task.ticket}, then run "mizan questions posted --link <comment url>".`;
   },
 
   posted: ({ flags, context }) => {
     const { paths, config } = context;
-    const task = requireTaskThatCanAskOnLinear(context);
-    const link = requireValue(flags.link, '--link (the URL of the Linear comment you posted)');
+    const task = requireTaskThatCanAskOnTracker(context);
+    const link = requireValue(flags.link, '--link (the URL of the comment you posted on the ticket)');
     const drafts = (task.questions ?? []).filter((entry) => entry.status === 'draft');
     if (drafts.length === 0) throw new Error('There are no drafted questions. Add them with "mizan questions add" first.');
     const postedAt = isoTimestamp();
     const questions = task.questions.map((entry) => (entry.status === 'draft' ? { ...entry, status: 'waiting', postedAt, link } : entry));
-    const reason = `Waiting for answers on Linear ${task.ticket} to ${drafts.map((entry) => entry.id).join(', ')}`;
-    saveTask(paths, { ...task, questions, blocked: { reason, at: postedAt, waitingOn: WAITING_ON_LINEAR } });
+    const reason = `Waiting for answers on ${trackerLabel(config)} ${task.ticket} to ${drafts.map((entry) => entry.id).join(', ')}`;
+    saveTask(paths, { ...task, questions, blocked: { reason, at: postedAt, waitingOn: WAITING_ON_TRACKER } });
 
     for (const entry of drafts) {
       appendFileSync(paths.decisions, [
         '',
-        `### ${isoDate()} | Asked on Linear (${entry.id}, waiting) | ${entry.askedBy} via Claude | ${task.id}`,
+        `### ${isoDate()} | Asked on ${trackerLabel(config)} (${entry.id}, waiting) | ${entry.askedBy} via Claude | ${task.id}`,
         '',
         entry.question,
         '',
@@ -64,7 +70,7 @@ const QUESTION_SUBCOMMANDS = {
         `Asked in: ${link}`,
         '',
       ].join('\n'));
-      appendLogEntry(paths, config, { type: 'question-asked', summary: `Asked on Linear ${task.ticket}: ${entry.question}`, taskId: task.id, ticket: task.ticket, details: { questionId: entry.id, category: entry.category, options: entry.options, recommendation: entry.recommendation, link } });
+      appendLogEntry(paths, config, { type: 'question-asked', summary: `Asked on ${trackerLabel(config)} ${task.ticket}: ${entry.question}`, taskId: task.id, ticket: task.ticket, details: { questionId: entry.id, category: entry.category, options: entry.options, recommendation: entry.recommendation, link } });
     }
     return [
       `Posted ${drafts.length} question(s) on ${task.ticket}. Task ${task.id} is paused until they are answered.`,
@@ -78,23 +84,23 @@ const QUESTION_SUBCOMMANDS = {
     const entry = (task.questions ?? []).find((candidate) => candidate.id === questionId);
     if (!entry) throw new Error(`Task ${task.id} has no question "${questionId ?? ''}". Run "mizan questions" to see them.`);
     if (entry.status !== 'waiting') throw new Error(`Question ${entry.id} is ${entry.status}, not waiting for an answer.`);
-    const answeredBy = requireValue(flags.by, '--by (who answered, as shown on Linear)');
+    const answeredBy = requireValue(flags.by, '--by (who answered, as shown on the ticket)');
     const answer = requireValue(flags.answer, '--answer (what they said, in your own words)');
     const decision = requireValue(flags.decision, '--decision (what you will now do because of it)');
-    const link = requireValue(flags.link, '--link (the URL of their Linear comment)');
+    const link = requireValue(flags.link, '--link (the URL of their comment)');
     const personalData = findPersonalData([answer, decision]);
     if (personalData.length > 0) throw new Error(`The answer contains personal data (${personalData.join(', ')}). Record it in general terms instead.`);
 
     const answeredAt = isoTimestamp();
     const questions = task.questions.map((candidate) => (candidate.id === entry.id ? { ...candidate, status: 'answered', answeredBy, answer, decision, answeredAt, answerLink: link } : candidate));
     const stillWaiting = questions.filter((candidate) => candidate.status === 'waiting');
-    const isWaitingOnLinear = task.blocked?.waitingOn === WAITING_ON_LINEAR;
-    const blocked = isWaitingOnLinear && stillWaiting.length === 0 ? null : task.blocked;
+    const waitingOnTracker = isWaitingOnTracker(task.blocked);
+    const blocked = waitingOnTracker && stillWaiting.length === 0 ? null : task.blocked;
     saveTask(paths, { ...task, questions, blocked });
 
     appendFileSync(paths.decisions, [
       '',
-      `### ${isoDate()} | Answered on Linear (${entry.id}) | answered by ${answeredBy} | ${task.id}`,
+      `### ${isoDate()} | Answered on ${trackerLabel(config)} (${entry.id}) | answered by ${answeredBy} | ${task.id}`,
       '',
       `Question: ${entry.question}`,
       `Answer: ${answer}`,
@@ -105,8 +111,8 @@ const QUESTION_SUBCOMMANDS = {
       '',
     ].join('\n'));
     appendLogEntry(paths, config, { type: 'question-answered', summary: `${answeredBy} answered ${entry.id}: ${answer} -> ${decision}`, taskId: task.id, ticket: task.ticket, details: { questionId: entry.id, answeredBy, answer, decision, link } });
-    if (isWaitingOnLinear && blocked === null) {
-      appendLogEntry(paths, config, { type: 'task-unblocked', summary: `All Linear questions answered on ${task.ticket}`, taskId: task.id, ticket: task.ticket });
+    if (waitingOnTracker && blocked === null) {
+      appendLogEntry(paths, config, { type: 'task-unblocked', summary: `All questions answered on ${trackerLabel(config)} ${task.ticket}`, taskId: task.id, ticket: task.ticket });
       return `Recorded ${entry.id}. Every question is answered, so task ${task.id} is unblocked. Continue from phase "${task.phase}" with the answers.`;
     }
     return `Recorded ${entry.id}. Still waiting on: ${stillWaiting.map((candidate) => candidate.id).join(', ') || 'none'}.`;
@@ -115,9 +121,9 @@ const QUESTION_SUBCOMMANDS = {
   list: ({ context }) => {
     const task = requireActiveTask(context.paths);
     const questions = task.questions ?? [];
-    if (questions.length === 0) return `Task ${task.id} has no Linear questions.`;
+    if (questions.length === 0) return `Task ${task.id} has no questions on its ticket.`;
     return [
-      `Linear questions for ${task.id} (${task.ticket}):`,
+      `Questions for ${task.id} on ${trackerLabel(context.config)} ${task.ticket}:`,
       ...questions.map((entry) => `- [${entry.id}] ${entry.status}${entry.postedAt ? ` since ${entry.postedAt}` : ''}: ${entry.question} Options: ${entry.options.join('; ')}. Recommended: ${entry.recommendation}.${entry.answer ? ` Answer from ${entry.answeredBy}: ${entry.answer}. Decision: ${entry.decision}.` : ''}`),
       `Who may answer: ${answererRule(context.config)}`,
     ].join('\n');
@@ -125,13 +131,13 @@ const QUESTION_SUBCOMMANDS = {
 };
 
 export function answererRule(config) {
-  const names = config.linear.answerers ?? [];
-  return names.length > 0 ? `only ${names.join(', ')}` : "only the ticket's assignee or creator";
+  const names = config.tracker.answerers ?? [];
+  return names.length > 0 ? `only ${names.join(', ')}` : "only the ticket's assignee or creator (reporter in Jira)";
 }
 
-function requireTaskThatCanAskOnLinear({ paths, config }) {
-  if (!config.linear.askQuestions) {
-    throw new Error('Asking on Linear is off for this project. Turn on "linear": { "askQuestions": true } in .mizan/config.json with the user\'s approval, or ask the user here.');
+function requireTaskThatCanAskOnTracker({ paths, config }) {
+  if (!config.tracker.askQuestions) {
+    throw new Error('Asking on the ticket is off for this project. Turn on "tracker": { "askQuestions": true } in .mizan/config.json with the user\'s approval, or ask the user here.');
   }
   const task = requireActiveTask(paths);
   if (!task.ticket) throw new Error(`Task ${task.id} has no ticket, so there is nowhere to ask. Ask the user here instead.`);

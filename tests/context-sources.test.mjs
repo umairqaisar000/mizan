@@ -56,7 +56,7 @@ after(() => {
 });
 
 test('every context source is off by default', () => {
-  assert.deepEqual(DEFAULT_CONFIG.context, { linear: false, granola: false, gmail: false });
+  assert.deepEqual(DEFAULT_CONFIG.context, { tracker: false, granola: false, gmail: false });
   const started = runCli('task', 'start', 'no-context', '--title', 'No context');
   assert.doesNotMatch(started.output, /Gather context first/);
   assert.equal(existsSync(join(projectRoot, '.mizan/tasks', activeTaskId(), 'context.md')), false);
@@ -64,7 +64,7 @@ test('every context source is off by default', () => {
 });
 
 test('with sources on, the task cannot leave planning until the context is gathered', () => {
-  setContextSources({ linear: true, granola: true, gmail: false });
+  setContextSources({ tracker: true, granola: true, gmail: false });
   const started = runCli('task', 'start', 'with-context', '--title', 'With context', '--ticket', 'ENG-1');
   assert.match(started.output, /Gather context first \(read only, linear, granola\)/);
   const taskFolder = join(projectRoot, '.mizan/tasks', activeTaskId());
@@ -80,7 +80,31 @@ test('with sources on, the task cannot leave planning until the context is gathe
   writeFileSync(join(taskFolder, 'context.md'), ['Sources checked', 'What is being asked for', 'Requirements found', 'Decisions already made', 'Open questions and conflicts', 'Sensitive data'].map((heading) => `## ${heading}\n\nDone.\n`).join('\n'));
   assert.equal(runCli('task', 'next').exitCode, 0);
   runCli('task', 'clear');
-  setContextSources({ linear: false, granola: false, gmail: false });
+  setContextSources({ tracker: false, granola: false, gmail: false });
+});
+
+test('the tracker source is named after the team\'s tracker, and old linear settings still work', () => {
+  const configPath = join(projectRoot, '.mizan/config.json');
+  const original = readFileSync(configPath, 'utf8');
+  const config = JSON.parse(original);
+  writeFileSync(configPath, JSON.stringify({ ...config, tracker: { name: 'jira' }, context: { tracker: true } }));
+  assert.match(runCli('task', 'start', 'jira-context', '--title', 'Jira', '--ticket', 'PAY-88').output, /Gather context first \(read only, jira\)/);
+  runCli('task', 'clear');
+  const { tracker: ignoredTracker, ...withoutTracker } = config;
+  writeFileSync(configPath, JSON.stringify({ ...withoutTracker, context: { linear: true } }));
+  assert.match(runCli('task', 'start', 'legacy-context', '--title', 'Legacy', '--ticket', 'ENG-2').output, /Gather context first \(read only, linear\)/);
+  runCli('task', 'clear');
+  writeFileSync(configPath, original);
+  assert.doesNotMatch(runCli('doctor').output, /CHECK/);
+  writeFileSync(configPath, JSON.stringify({ ...config, tracker: { name: 'jira', askQuestions: true } }));
+  const doctor = runCli('doctor').output;
+  assert.match(doctor, /CHECK Jira is reached through the Atlassian connector/);
+  assert.match(doctor, /no API key/);
+  writeFileSync(configPath, JSON.stringify({ ...config, tracker: { name: 'constructor' } }));
+  assert.match(runCli('status').output, /Unknown tracker "constructor"/);
+  writeFileSync(configPath, JSON.stringify({ ...config, tracker: { name: 'trello-ish' } }));
+  assert.match(runCli('status').output, /Unknown tracker "trello-ish"/);
+  writeFileSync(configPath, original);
 });
 
 test('personal data cannot be written into Mizan documents', () => {

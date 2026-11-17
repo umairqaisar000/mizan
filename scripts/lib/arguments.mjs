@@ -1,4 +1,4 @@
-const FLAGS_WITHOUT_VALUES = new Set(['auto', 'guided', 'ci', 'refresh-commands', 'skip-linear']);
+const FLAGS_WITHOUT_VALUES = new Set(['auto', 'guided', 'ci', 'refresh-commands', 'skip-ticket']);
 
 export function parseArguments(argv) {
   const positional = [];

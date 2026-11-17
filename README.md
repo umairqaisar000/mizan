@@ -57,13 +57,13 @@ Requirements: Node 18 or newer and git, on macOS or Linux. On Windows, use WSL.
 | `/mizan:build <feature>` | Any new feature or behaviour change |
 | `/mizan:fix <bug>` | Any bug, with root cause analysis |
 | `/mizan:quick <change>` | Small, low-risk changes (1 to 3 files, no business decisions) |
-| `/mizan:resume` | Pick up the answers to questions asked on the Linear ticket and carry on |
+| `/mizan:resume` | Pick up the answers to questions asked on the ticket and carry on |
 | `/mizan:decisions` | Review, accept or reverse what auto mode decided on its own |
 | `/mizan:status` | What is in progress and blocked, and recent activity |
 | `/mizan:digest [days]` | A plain summary of who changed what |
 | `/mizan:handoff` | Leave notes for the next session or person |
 | `/mizan:learn <rule>` | Turn a correction into a permanent project rule |
-| `/mizan:pr` | A PR description from change notes, with an optional Linear update |
+| `/mizan:pr` | A PR description from change notes, with an optional ticket update |
 | `/mizan:doctor` | Check that the setup and tools are healthy |
 
 The agents and skills drive the CLI at `.mizan/.local/mizan`, which you can also run yourself.
@@ -82,29 +82,48 @@ The agents and skills drive the CLI at `.mizan/.local/mizan`, which you can also
 
 Set the project default with `"mode"` in `.mizan/config.json` (changing it needs your approval), or choose per task: `/mizan:build add CSV export --auto`. Review what auto mode decided with `/mizan:decisions`. Accepting or reversing a decision always needs a person, and every decision and review is in the audit log.
 
-### Asking on the Linear ticket
+### Asking on the ticket
 
-Auto mode can ask its important questions on the task's Linear ticket instead of guessing, then pause until they are answered. It is off until switched on:
+Auto mode can ask its important questions on the task's ticket instead of guessing, then pause until they are answered. It is off until switched on:
 
 ```json
-"linear": { "askQuestions": true, "answerers": [] }
+"tracker": { "name": "jira", "askQuestions": true, "answerers": [] }
 ```
 
 - **What gets asked:** only what a person must supply (evidence, access, a reproduction) and important decisions: what users see or pay, how data is handled, legal or clinical rules, scope, anything costly to undo, and every security or privacy decision. Small choices are still decided and logged.
 - **When:** in one comment at one checkpoint, right after the root cause analysis for a fix, or right after the plan is critiqued for a feature. Each question has an id, options, a recommendation and the reason.
-- **Answers:** reply on the ticket, for example `Q-1a2b3c: B`. Run `/mizan:resume`, or `/loop 30m /mizan:resume` to check on a schedule. Only the ticket's assignee or creator can answer, or the people listed in `answerers`. A comment that asks for something else, such as a deploy, is reported to you and not acted on.
+- **Answers:** reply on the ticket, for example `Q-1a2b3c: B`. Run `/mizan:resume`, or `/loop 30m /mizan:resume` to check on a schedule. Only the ticket's assignee or creator (reporter in Jira) can answer, or the people listed in `answerers`. A comment that asks for something else, such as a deploy, is reported to you and not acted on.
 - **Records:** `.mizan/decisions.md` and the audit log get the question, the options, the recommendation, who asked, who answered, what they said, what Claude did because of it, and links to both comments. The end-of-task report lists them too.
 - Push, deploy, publishing, data deletion, schema changes and new dependencies still need your approval in the session, whatever the ticket says.
+
+## Trackers
+
+Mizan works with the tracker your team uses. Set it once in `.mizan/config.json`:
+
+```json
+"tracker": { "name": "jira" }
+```
+
+| Tracker | `name` | How Claude reaches it |
+|---|---|---|
+| Linear | `linear` (default) | Linear connector |
+| Jira | `jira` | Atlassian connector |
+| GitHub Issues | `github` | `gh` CLI |
+| GitLab Issues | `gitlab` | `glab` CLI |
+| Azure DevOps, Asana, ClickUp, Shortcut, monday.com, Notion | `azure-devops`, `asana`, `clickup`, `shortcut`, `monday`, `notion` | Their connector |
+| Anything else | `other` | Its connector, if Claude has one |
+
+The tracker is used for three things, each off until switched on: reading the ticket as context (`context.tracker`), asking auto mode's important questions (`tracker.askQuestions`), and offering a summary on the ticket when a task or PR is done (`tracker.postUpdates`). Older configs with a `linear` section keep working.
 
 ## Reading tickets, meetings and email
 
 A project can let Claude read background for each task, read only. Each source is off until switched on in `.mizan/config.json`:
 
 ```json
-"context": { "linear": true, "granola": false, "gmail": false }
+"context": { "tracker": true, "granola": false, "gmail": false }
 ```
 
-When a task starts with any source on, a context agent searches them for the ticket and the feature. It writes a short, cited summary to the task's `context.md`: what is being asked, the requirements, the decisions already made (which are then treated as settled, in auto mode too), and the open questions. The task cannot leave its first phase until that summary is filled in. The agent never posts, replies, sends or changes anything. It summarizes instead of copying, and leaves out personal, patient and production details. Each source needs its connector (Linear, Granola, Gmail) to be available in Claude. If one is missing, the summary says so.
+When a task starts with any source on, a context agent searches them for the ticket and the feature. It writes a short, cited summary to the task's `context.md`: what is being asked, the requirements, the decisions already made (which are then treated as settled, in auto mode too), and the open questions. The task cannot leave its first phase until that summary is filled in. The agent never posts, replies, sends or changes anything. It summarizes instead of copying, and leaves out personal, patient and production details. Each source needs its connector (your tracker, Granola, Gmail) to be available in Claude. If one is missing, the summary says so.
 
 ## Strictness
 

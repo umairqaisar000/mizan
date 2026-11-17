@@ -97,8 +97,8 @@ const PATTERN_RULES = [
   {
     decision: 'ask',
     category: 'mizan-control',
-    pattern: /\bmizan\s+task\s+unblock\b.*--skip-linear\b/,
-    reason: 'This stops waiting for the answers asked on Linear. The user decides.',
+    pattern: /\bmizan\s+task\s+unblock\b.*--skip-ticket\b/,
+    reason: 'This stops waiting for the answers asked on the ticket. The user decides.',
   },
 ];
 

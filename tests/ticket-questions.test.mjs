@@ -26,10 +26,10 @@ function activeTask() {
   return JSON.parse(readFileSync(join(projectRoot, '.mizan/tasks', taskId, 'state.json'), 'utf8'));
 }
 
-function setLinear(linear) {
+function setTracker(tracker) {
   const configPath = join(projectRoot, '.mizan/config.json');
   const config = JSON.parse(readFileSync(configPath, 'utf8'));
-  writeFileSync(configPath, JSON.stringify({ ...config, linear: { ...config.linear, ...linear } }));
+  writeFileSync(configPath, JSON.stringify({ ...config, tracker: { ...config.tracker, ...tracker } }));
 }
 
 function addQuestion(question, extra = []) {
@@ -53,11 +53,11 @@ after(() => {
   rmSync(projectRoot, { recursive: true, force: true });
 });
 
-test('asking on Linear is off by default and needs a ticket', () => {
-  assert.equal(DEFAULT_CONFIG.linear.askQuestions, false);
+test('asking on the ticket is off by default and needs a ticket', () => {
+  assert.equal(DEFAULT_CONFIG.tracker.askQuestions, false);
   runCli('task', 'start', 'no-ticket', '--title', 'No ticket', '--kind', 'fix', '--auto');
-  assert.match(addQuestion('Refund how?').output, /Asking on Linear is off/);
-  setLinear({ askQuestions: true });
+  assert.match(addQuestion('Refund how?').output, /Asking on the ticket is off/);
+  setTracker({ name: 'jira', askQuestions: true });
   assert.match(addQuestion('Refund how?').output, /has no ticket/);
   runCli('task', 'clear');
   execFileSync('git', ['switch', '-q', 'main'], { cwd: projectRoot });
@@ -70,34 +70,35 @@ test('questions are drafted, posted, answered and recorded, and the task resumes
 
   const first = /Q-[0-9a-f]{6}/.exec(addQuestion('Refund in full or only the difference?').output)[0];
   const second = /Q-[0-9a-f]{6}/.exec(addQuestion('Apply to past claims too?').output)[0];
-  const posted = runCli('questions', 'posted', '--link', 'https://linear.app/x/issue/ENG-7#comment-1');
+  const posted = runCli('questions', 'posted', '--link', 'https://example.atlassian.net/browse/ENG-7/comment-1');
   assert.equal(posted.exitCode, 0, posted.output);
-  assert.equal(activeTask().blocked.waitingOn, 'linear');
+  assert.equal(activeTask().blocked.waitingOn, 'tracker');
+  assert.match(activeTask().blocked.reason, /Waiting for answers on Jira ENG-7/);
   assert.equal(runHook('stop').status, 0);
   assert.match(runCli('task', 'next').output, /mizan:resume/);
-  assert.match(runCli('task', 'unblock', 'go on').output, /--skip-linear/);
-  assert.match(runHook('session-start').stdout, /waiting for answers on Linear/);
+  assert.match(runCli('task', 'unblock', 'go on').output, /--skip-ticket/);
+  assert.match(runHook('session-start').stdout, /waiting for answers on its ticket/);
 
-  const answerFirst = runCli('questions', 'answer', first, '--by', 'Ops Lead', '--answer', 'Only the difference', '--decision', 'Refund the difference and keep the original charge', '--link', 'https://linear.app/x/issue/ENG-7#comment-2');
+  const answerFirst = runCli('questions', 'answer', first, '--by', 'Ops Lead', '--answer', 'Only the difference', '--decision', 'Refund the difference and keep the original charge', '--link', 'https://example.atlassian.net/browse/ENG-7/comment-2');
   assert.match(answerFirst.output, new RegExp(`Still waiting on: ${second}`));
   assert.ok(activeTask().blocked);
-  const answerSecond = runCli('questions', 'answer', second, '--by', 'Ops Lead', '--answer', 'No, new claims only', '--decision', 'Leave past claims unchanged', '--link', 'https://linear.app/x/issue/ENG-7#comment-3');
+  const answerSecond = runCli('questions', 'answer', second, '--by', 'Ops Lead', '--answer', 'No, new claims only', '--decision', 'Leave past claims unchanged', '--link', 'https://example.atlassian.net/browse/ENG-7/comment-3');
   assert.match(answerSecond.output, /unblocked/);
   assert.equal(activeTask().blocked, null);
 
   const decisions = readFileSync(join(projectRoot, '.mizan/decisions.md'), 'utf8');
-  assert.match(decisions, new RegExp(`Asked on Linear \\(${first}, waiting\\) \\| Asking Person via Claude`));
-  assert.match(decisions, new RegExp(`Answered on Linear \\(${first}\\) \\| answered by Ops Lead`));
+  assert.match(decisions, new RegExp(`Asked on Jira \\(${first}, waiting\\) \\| Asking Person via Claude`));
+  assert.match(decisions, new RegExp(`Answered on Jira \\(${first}\\) \\| answered by Ops Lead`));
   assert.match(decisions, /Decision: Refund the difference and keep the original charge/);
-  assert.match(decisions, /Answer in: https:\/\/linear.app\/x\/issue\/ENG-7#comment-2/);
+  assert.match(decisions, /Answer in: https:\/\/example\.atlassian\.net\/browse\/ENG-7\/comment-2/);
   const log = readFileSync(join(projectRoot, '.mizan/log.jsonl'), 'utf8');
   assert.match(log, /"type":"question-asked"/);
   assert.match(log, /"type":"question-answered"/);
   assert.match(runCli('questions', 'answer', first, '--by', 'x', '--answer', 'y', '--decision', 'z', '--link', 'u').output, /is answered, not waiting/);
 });
 
-test('Claude needs the user to stop waiting for Linear answers', () => {
+test('Claude needs the user to stop waiting for answers on the ticket', () => {
   const options = { deployCommandPatterns: DEFAULT_CONFIG.approvals.deployCommandPatterns, lockedTestPatterns: [] };
-  assert.equal(classifyBashCommand('.mizan/.local/mizan task unblock --skip-linear carry on', options).decision, 'ask');
+  assert.equal(classifyBashCommand('.mizan/.local/mizan task unblock --skip-ticket carry on', options).decision, 'ask');
   assert.equal(classifyBashCommand('.mizan/.local/mizan questions answer Q-abc123 --by x', options).decision, 'allow');
 });

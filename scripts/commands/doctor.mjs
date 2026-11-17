@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { TRACKERS, isTrackerUsed } from '../lib/config.mjs';
 import { loadMizanContext } from '../lib/context.mjs';
 import { isAuthorKnown, resolveAuthor } from '../lib/identity.mjs';
 
@@ -17,6 +18,7 @@ export function runDoctor() {
   const { paths, initialized, config } = loadMizanContext();
   const results = [];
   const record = (ok, label, advice = null) => results.push({ ok, label, advice });
+  const claudeChecks = [];
 
   const nodeMajor = Number(process.versions.node.split('.')[0]);
   record(nodeMajor >= MINIMUM_NODE_MAJOR_VERSION, `Node ${process.versions.node}`, `Mizan needs Node ${MINIMUM_NODE_MAJOR_VERSION} or newer.`);
@@ -37,6 +39,7 @@ export function runDoctor() {
     record(existsSync(join(paths.projectRoot, '.github', 'workflows', 'mizan.yml')), 'CI workflow present', 'Optional: run "mizan init --ci" to enforce the same checks in GitHub Actions.');
     const hasPlaywright = existsSync(join(paths.projectRoot, 'node_modules', '@playwright', 'test'));
     record(hasPlaywright, 'Playwright installed', 'Optional but recommended for end-to-end tests: ask before adding @playwright/test.');
+    if (isTrackerUsed(config)) checkTrackerConnection(TRACKERS[config.tracker.name], record, claudeChecks);
   }
 
   for (const tool of OPTIONAL_TOOLS) {
@@ -45,7 +48,23 @@ export function runDoctor() {
 
   const lines = results.map(({ ok, label, advice }) => `${ok ? 'OK  ' : 'FIX '} ${label}${!ok && advice ? `\n      ${advice}` : ''}`);
   lines.push('', 'Browser QA uses the Chrome DevTools MCP server bundled with the plugin. Run /mcp to confirm it is connected.');
+  lines.push(...claudeChecks.map((check) => `CHECK ${check}`));
   return lines.join('\n');
+}
+
+function checkTrackerConnection(tracker, record, claudeChecks) {
+  if (tracker.cli) {
+    const installed = isBinaryAvailable(tracker.cli);
+    record(installed, `${tracker.cli} installed for ${tracker.label}`, `Install ${tracker.cli} (brew install ${tracker.cli}). Ask the user first.`);
+    if (installed) {
+      const signedIn = spawnSync(tracker.cli, ['auth', 'status'], { stdio: 'ignore', timeout: 15000 }).status === 0;
+      record(signedIn, `${tracker.cli} signed in for ${tracker.label}`, `The user runs "! ${tracker.login}" in Claude Code and signs in through the browser. No API key is needed.`);
+    }
+    return;
+  }
+  claudeChecks.push(tracker.connector
+    ? `${tracker.label} is reached through the ${tracker.connector} connector, which only Claude can see. Claude: confirm you have ${tracker.connector} tools. If not, the user adds it once: on claude.ai, Settings, Connectors, add ${tracker.connector} and sign in through the browser (no API key), then runs /mcp in Claude Code to confirm it is connected. Their workspace admin may need to allow it first.`
+    : 'The tracker is "other". Claude: confirm you have tools for it. If not, the user adds its connector in claude.ai, Settings, Connectors, or with "claude mcp add".');
 }
 
 function isBinaryAvailable(binary) {

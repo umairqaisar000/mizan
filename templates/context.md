@@ -4,7 +4,7 @@ Task: {{taskId}} | Ticket: {{ticket}} | Gathered {{date}} | Sources enabled: {{c
 
 ## Sources checked
 
-(fill in) Each enabled source, what was searched for, and what was found, with a link or reference for every item, for example "Linear ENG-2412 and its 4 comments", "Granola: Claims sync, 3 Nov", "Gmail: thread 'Pending claims' from ops, 5 Nov". Write "searched, nothing relevant" when that is the case, and "not available in this session" if a connection is missing.
+(fill in) Each enabled source, what was searched for, and what was found, with a link or reference for every item, for example "Linear ENG-2412 and its 4 comments" or "Jira PAY-88", "Granola: Claims sync, 3 Nov", "Gmail: thread 'Pending claims' from ops, 5 Nov". Write "searched, nothing relevant" when that is the case, and "not available in this session" if a connection is missing.
 
 ## What is being asked for
 

@@ -66,7 +66,7 @@ function buildInitialConfig(detected, strictness) {
     commands: detected.isJavaScriptProject ? detected.commands : DEFAULT_CONFIG.commands,
     appUrl: detected.isJavaScriptProject ? detected.appUrl : null,
     log: DEFAULT_CONFIG.log,
-    linear: DEFAULT_CONFIG.linear,
+    tracker: DEFAULT_CONFIG.tracker,
   };
 }
 

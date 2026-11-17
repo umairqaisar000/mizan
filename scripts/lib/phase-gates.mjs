@@ -86,9 +86,12 @@ const GATES_BY_PHASE_BEING_LEFT = {
     return checkEverythingIsGreen(context);
   },
 
-  document: ({ paths, policy, task }) => {
-    if (!policy.changeNoteRequired) return { problems: [], evidence: null };
-    const problems = findDocumentProblems(changeNotePath(paths, task.id), 'changeNote');
+  document: ({ paths, config, policy, task }) => {
+    const problems = policy.changeNoteRequired ? findDocumentProblems(changeNotePath(paths, task.id), 'changeNote') : [];
+    if (config.learning.teachBack === 'required' && task.understanding?.outcome !== 'understood') {
+      problems.push('Teach-back check: this project requires the person running the task to explain it back before it closes. Explain the change, ask 2 or 3 questions, correct any misunderstanding, then they approve "mizan understood <summary>".');
+    }
+    if (!policy.changeNoteRequired) return { problems, evidence: null };
     if (task.kind === 'fix') {
       problems.push(...findDocumentProblems(rcaPath(paths, task.id), 'rca'));
     }

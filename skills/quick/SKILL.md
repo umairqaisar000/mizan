@@ -23,4 +23,4 @@ If `mizan task start` printed "Gather context first", read only the ticket yours
 2. Write the failing test yourself (follow `.mizan/.local/standards/testing.md`), then `mizan task next`.
 3. Implement (follow `.mizan/.local/standards/code.md`), then `mizan task next`.
 4. Send `mizan:code-reviewer` the task id. If the change touches input handling, output rendering or config, also send `mizan:security-reviewer`. Write `review.md`, then `mizan task next`.
-5. Write the change note yourself, keeping it short but complete, then `mizan task next`.
+5. Write the change note yourself, keeping it short but complete, including "If someone asks you". Follow the teach-back and learning notes steps of /mizan:build phase 6, keeping the teach-back to one or two questions. Then `mizan task next`.

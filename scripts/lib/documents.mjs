@@ -4,7 +4,7 @@ export const UNFILLED_MARKER = '(fill in)';
 
 export const REQUIRED_SECTIONS = {
   plan: ['Goal', 'Acceptance criteria', 'Approach', 'Alternatives considered', 'Existing code to reuse', 'Files', 'Tests', 'User experience', 'Security', 'Decisions and questions', 'Approval'],
-  changeNote: ['In one sentence', 'What changed', 'Why', 'Where', 'How it works', 'How to check it yourself', 'Security', 'Risks and follow-ups'],
+  changeNote: ['In one sentence', 'What changed', 'Why', 'Where', 'How it works', 'How to check it yourself', 'Security', 'Risks and follow-ups', 'If someone asks you'],
   rca: ['Symptom', 'Reproduction', 'Evidence', 'Timeline', 'Root cause', 'Why it was not caught', 'Fix', 'Prevention'],
   qa: ['Result', 'Flows checked', 'Console and network', 'Layouts checked', 'Accessibility', 'Screenshots'],
   review: ['Result', 'Blocking findings', 'Non-blocking findings', 'Security'],

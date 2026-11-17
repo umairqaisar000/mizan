@@ -15,5 +15,6 @@ Fill in every section of the change note:
 - "How it works" teaches a developer the flow step by step, names the key functions, and says why this design won.
 - "How to check it yourself" gives app steps anyone can follow, plus the test commands.
 - "Security" and "Risks and follow-ups" are honest and specific.
+- "If someone asks you" prepares the person who ran the task to explain it: a one-sentence non-technical answer, a three-sentence technical answer, why this approach beat the main alternative, and 3 to 5 questions a manager, a reviewer or a client is likely to ask, each with a short, accurate answer. Use the decisions in `.mizan/decisions.md` for this task.
 
 Return: the change note path and the one-sentence summary.

@@ -7,6 +7,7 @@ import { after, before, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { classifyBashCommand } from '../scripts/lib/bash-rules.mjs';
 import { DEFAULT_CONFIG } from '../scripts/lib/config.mjs';
+import { checkGateForLeavingPhase } from '../scripts/lib/phase-gates.mjs';
 
 const pluginRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 let projectRoot;
@@ -101,4 +102,45 @@ test('Claude needs the user to stop waiting for answers on the ticket', () => {
   const options = { deployCommandPatterns: DEFAULT_CONFIG.approvals.deployCommandPatterns, lockedTestPatterns: [] };
   assert.equal(classifyBashCommand('.mizan/.local/mizan task unblock --skip-ticket carry on', options).decision, 'ask');
   assert.equal(classifyBashCommand('.mizan/.local/mizan questions answer Q-abc123 --by x', options).decision, 'allow');
+});
+
+test('the teach-back check is offered by default, can be required, and only the person can confirm it', () => {
+  assert.equal(DEFAULT_CONFIG.learning.teachBack, 'offer');
+  const options = { deployCommandPatterns: DEFAULT_CONFIG.approvals.deployCommandPatterns, lockedTestPatterns: [] };
+  assert.equal(classifyBashCommand('.mizan/.local/mizan understood they explained the rounding', options).decision, 'ask');
+  assert.equal(classifyBashCommand('.mizan/.local/mizan concepts add idempotency --explain x', options).decision, 'allow');
+
+  const recorded = runCli('understood', 'Explained that the refund now uses the difference and why');
+  assert.match(recorded.output, /Recorded that Asking Person understood/);
+  assert.equal(activeTask().understanding.outcome, 'understood');
+  assert.match(readFileSync(join(projectRoot, '.mizan/log.jsonl'), 'utf8'), /"type":"understanding-checked"/);
+  assert.match(runCli('understood', '--skipped').output, /Missing reason the check was skipped/);
+
+  const configPath = join(projectRoot, '.mizan/config.json');
+  const config = JSON.parse(readFileSync(configPath, 'utf8'));
+  writeFileSync(configPath, JSON.stringify({ ...config, learning: { teachBack: 'sometimes' } }));
+  assert.match(runCli('status').output, /Unknown learning.teachBack "sometimes"/);
+  writeFileSync(configPath, JSON.stringify(config));
+});
+
+test('learning notes live outside the project and never repeat a concept', () => {
+  const learningHome = mkdtempSync(join(tmpdir(), 'mizan-learning-'));
+  environment = { ...environment, MIZAN_HOME: learningHome };
+  assert.match(runCli('concepts').output, /No concepts recorded yet/);
+  assert.match(runCli('concepts', 'add', 'Idempotency', '--explain', 'Doing it twice has the same effect as once. The refund job can rerun safely.').output, /Added "Idempotency"/);
+  assert.match(runCli('concepts', 'add', 'idempotency', '--explain', 'again').output, /already in your learning notes/);
+  assert.match(runCli('concepts', 'add', 'Lookup', '--explain', 'Call 0551234567 for help').output, /personal data/);
+  assert.match(readFileSync(join(learningHome, 'learning.md'), 'utf8'), /## Idempotency\n\nDoing it twice/);
+  assert.match(runCli('concepts').output, /Idempotency/);
+  rmSync(learningHome, { recursive: true, force: true });
+});
+
+test('when the teach-back is required, the task cannot close until the person understood it', () => {
+  const task = { id: 't', kind: 'feature', phase: 'document', contextSources: [] };
+  const policy = { changeNoteRequired: false };
+  const requiredConfig = { ...DEFAULT_CONFIG, learning: { teachBack: 'required' } };
+  assert.match(checkGateForLeavingPhase({ paths: {}, config: requiredConfig, policy, task }).problems.join(), /Teach-back check/);
+  assert.match(checkGateForLeavingPhase({ paths: {}, config: requiredConfig, policy, task: { ...task, understanding: { outcome: 'skipped' } } }).problems.join(), /Teach-back check/);
+  assert.deepEqual(checkGateForLeavingPhase({ paths: {}, config: requiredConfig, policy, task: { ...task, understanding: { outcome: 'understood' } } }).problems, []);
+  assert.deepEqual(checkGateForLeavingPhase({ paths: {}, config: DEFAULT_CONFIG, policy, task }).problems, []);
 });

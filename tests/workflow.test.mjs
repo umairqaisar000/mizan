@@ -129,7 +129,7 @@ test('a feature task moves through every phase with its gates enforced', () => {
   assert.equal(unfinishedNote.exitCode, 2);
   assert.match(unfinishedNote.stderr, /change note is not finished/);
 
-  writeProjectFile(`.mizan/changes/${taskId}.md`, `# Add numbers\n\n${filledDocument(['In one sentence', 'What changed', 'Why', 'Where', 'How it works', 'How to check it yourself', 'Security', 'Risks and follow-ups'])}`);
+  writeProjectFile(`.mizan/changes/${taskId}.md`, `# Add numbers\n\n${filledDocument(['In one sentence', 'What changed', 'Why', 'Where', 'How it works', 'How to check it yourself', 'Security', 'Risks and follow-ups', 'If someone asks you'])}`);
   const done = runCli('task', 'next');
   assert.equal(done.exitCode, 0, done.output);
   assert.match(done.output, /done and logged/);

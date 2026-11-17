@@ -19,6 +19,7 @@ export const LOG_ENTRY_TYPES = [
   'decision-reviewed',
   'question-asked',
   'question-answered',
+  'understanding-checked',
   'rule-added',
   'note',
 ];

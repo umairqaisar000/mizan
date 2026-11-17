@@ -56,6 +56,9 @@ If `mizan task start` printed "Gather context first", send the `mizan:context-ga
 
 ## 6. Document and close
 - Send `mizan:scribe` the task id and change note path. Read the note once and fix anything inaccurate.
+- The change note's "If someone asks you" section prepares the person to answer questions about it. Point them to it.
+- **Teach-back** (`learning.teachBack` in `.mizan/config.json`: `offer` by default, `required`, or `off`): before the final `mizan task next`, explain the problem and the solution in plain words in five lines or fewer, then offer the person two or three short questions to check they can explain it themselves (why it happened or was needed, why this approach, how we know it works). Ask one at a time and correct gently and precisely. Then ask them to approve `mizan understood "<what they explained back and what was corrected>"`, or, if they skip, `mizan understood --skipped "<their reason>"`. When it is `required`, the task cannot close without it. In auto mode, do this when the person is back; if it is `required`, run `mizan task block "Teach-back check waiting for <name>"` first.
+- **Learning notes:** for each concept from this task the person may not know (for example a race condition, an index, idempotency), run `mizan concepts` to see what they already know, and add new ones with `mizan concepts add "<term>" --explain "<two plain sentences, with the example from this task>"`. Keep it to the two or three that matter most. These stay on their computer only.
 - `mizan task next` closes the task and writes the log entry.
 - If `tracker.postUpdates` is on in `.mizan/config.json` and the task has a ticket, offer to post the one-sentence summary and the change note to the ticket. Post only if the user says yes.
 - Tell the user in five lines or fewer: what was built, the test results, the QA result, where the change note is, and that nothing was committed.

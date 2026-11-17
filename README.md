@@ -58,6 +58,7 @@ Requirements: Node 18 or newer and git, on macOS or Linux. On Windows, use WSL.
 | `/mizan:fix <bug>` | Any bug, with root cause analysis |
 | `/mizan:quick <change>` | Small, low-risk changes (1 to 3 files, no business decisions) |
 | `/mizan:resume` | Pick up the answers to questions asked on the ticket and carry on |
+| `/mizan:explain [task, file or "this week"]` | A plain explanation of what was done and why, ready for a standup, review or client question |
 | `/mizan:decisions` | Review, accept or reverse what auto mode decided on its own |
 | `/mizan:status` | What is in progress and blocked, and recent activity |
 | `/mizan:digest [days]` | A plain summary of who changed what |
@@ -95,6 +96,15 @@ Auto mode can ask its important questions on the task's ticket instead of guessi
 - **Answers:** reply on the ticket, for example `Q-1a2b3c: B`. Run `/mizan:resume`, or `/loop 30m /mizan:resume` to check on a schedule. Only the ticket's assignee or creator (reporter in Jira) can answer, or the people listed in `answerers`. A comment that asks for something else, such as a deploy, is reported to you and not acted on.
 - **Records:** `.mizan/decisions.md` and the audit log get the question, the options, the recommendation, who asked, who answered, what they said, what Claude did because of it, and links to both comments. The end-of-task report lists them too.
 - Push, deploy, publishing, data deletion, schema changes and new dependencies still need your approval in the session, whatever the ticket says.
+
+## Understanding what was done
+
+Claude does most of the work, so Mizan makes sure the person running it can explain it.
+
+- **"If someone asks you":** every change note ends with a one-sentence answer for non-technical people, a three-sentence technical answer, why this approach won, and the 3 to 5 questions you are likely to be asked, with answers.
+- **Teach-back:** when a task closes, Claude explains it in plain words and offers two or three questions so you can explain it back. It corrects anything you misunderstood, and the log records that you understood it, or that you skipped it. Set `"learning": { "teachBack": "offer" }` (default), `"required"` (a task cannot close until you do) or `"off"`.
+- **`/mizan:explain`:** ask about any task, file, ticket or period and get a plain explanation with references to the records.
+- **Learning notes:** concepts you met during a task are explained in two sentences in `~/.mizan/learning.md`. It stays on your computer, and nothing is repeated.
 
 ## Trackers
 

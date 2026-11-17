@@ -97,6 +97,12 @@ const PATTERN_RULES = [
   {
     decision: 'ask',
     category: 'mizan-control',
+    pattern: /\bmizan\s+understood\b/,
+    reason: 'This records that the person understood the change, or skipped the check. Only they can confirm it.',
+  },
+  {
+    decision: 'ask',
+    category: 'mizan-control',
     pattern: /\bmizan\s+task\s+unblock\b.*--skip-ticket\b/,
     reason: 'This stops waiting for the answers asked on the ticket. The user decides.',
   },

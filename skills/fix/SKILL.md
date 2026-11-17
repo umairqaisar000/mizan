@@ -36,4 +36,4 @@ If `mizan task start` printed "Gather context first", send the `mizan:context-ga
 ## 3 to 6.
 Follow phases 2 to 6 of /mizan:build exactly: failing regression test, fix with tests locked, browser QA reproducing the original steps to show the bug is gone, both reviews, and the change note.
 
-Before closing, fill in the RCA's Fix and Prevention sections. The close gate checks that the whole RCA is complete.
+Before closing, fill in the RCA's Fix and Prevention sections. The close gate checks that the whole RCA is complete. For a fix, the teach-back questions should cover the root cause: what really broke, why it was not caught, and why the fix addresses the cause and not the symptom.

@@ -4,6 +4,7 @@ import { runCi } from './commands/ci.mjs';
 import { runDecisions } from './commands/decisions.mjs';
 import { runDoctor } from './commands/doctor.mjs';
 import { runHandoff } from './commands/handoff.mjs';
+import { runConcepts, runUnderstood } from './commands/learning.mjs';
 import { runInit } from './commands/init.mjs';
 import { runDecision, runLog, runRule } from './commands/records.mjs';
 import { runDigest, runStatus, runWhoami } from './commands/reports.mjs';
@@ -19,6 +20,8 @@ const COMMANDS = {
   decision: { run: runDecision, usage: 'decision <text> --kind asked|inferred [--answer <answer>] | --kind auto --category <category> --chosen <option> --options "a | b" --reason <why>' },
   decisions: { run: runDecisions, usage: 'decisions [list] | accept <id> [note] | reverse <id> <reason>' },
   questions: { run: runQuestions, usage: 'questions [list] | add <question> --category <category> --options "a | b" --recommend <option> --why <why> | posted --link <url> | answer <Q-id> --by <who> --answer <what they said> --decision <what you will do> --link <url>' },
+  understood: { run: runUnderstood, usage: 'understood <what the person explained back and what was corrected> | understood --skipped <reason>' },
+  concepts: { run: runConcepts, usage: 'concepts [list] | add <term> --explain <two plain sentences>' },
   rule: { run: runRule, usage: 'rule add <rule text>' },
   status: { run: runStatus, usage: 'status' },
   digest: { run: runDigest, usage: 'digest [--days 7]' },

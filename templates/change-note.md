@@ -33,3 +33,11 @@ Date: {{date}} | Author: {{author}} (with Claude Code via Mizan) | Task: {{taskI
 ## Risks and follow-ups
 
 (fill in) What might break, what was deliberately left out, and what should happen next. Write "none known" if that is true.
+
+## If someone asks you
+
+(fill in) For the person who ran this task, so they can answer questions about it without reading the code:
+- Non-technical answer: one sentence.
+- Technical answer: three sentences on the cause or need, the approach, and how it was tested.
+- Why this way: the main alternative and why it lost.
+- Likely questions: 3 to 5, each with a short answer, for example "Does this affect existing data?" or "What happens if the service is down?".

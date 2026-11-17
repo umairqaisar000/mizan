@@ -112,6 +112,9 @@ export const DEFAULT_CONFIG = {
   log: {
     includeEmail: false,
   },
+  learning: {
+    teachBack: 'offer',
+  },
   tracker: {
     name: 'linear',
     postUpdates: false,
@@ -222,6 +225,9 @@ export function loadConfig(paths) {
     throw new Error(`.mizan/config.json is not valid JSON (${error.message}).`);
   }
   const config = mergeDeep(DEFAULT_CONFIG, withLegacyLinearSettings(projectConfig));
+  if (!['off', 'offer', 'required'].includes(config.learning.teachBack)) {
+    throw new Error(`Unknown learning.teachBack "${config.learning.teachBack}" in .mizan/config.json. Use one of: off, offer, required.`);
+  }
   if (!Object.hasOwn(TRACKERS, config.tracker.name)) {
     throw new Error(`Unknown tracker "${config.tracker.name}" in .mizan/config.json. Use one of: ${Object.keys(TRACKERS).join(', ')}.`);
   }

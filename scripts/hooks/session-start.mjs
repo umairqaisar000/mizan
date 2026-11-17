@@ -22,7 +22,8 @@ const OPERATING_RULES = `Mizan operating rules (always apply):
 8. Save tokens: search before reading, read only the lines you need, hand broad exploration to a subagent, do not re-run checks that already passed.
 9. When you need the user, run "mizan task block <question>" before asking, so the stop gate knows you are waiting.
 10. When the user corrects how you work, offer to save it with /mizan:learn.
-11. Auto mode: decide instead of asking, record each decision with "mizan decision --kind auto", tell the user what you decided, and keep going. Still stop for push, deploy, publish, data deletion, schema changes, new dependencies, and security or privacy decisions.`;
+11. Auto mode: decide instead of asking, record each decision with "mizan decision --kind auto", tell the user what you decided, and keep going. Still stop for push, deploy, publish, data deletion, schema changes, new dependencies, and security or privacy decisions.
+12. The person must understand what was done. Explain each key decision in plain words as you go, and when they ask what or why, use /mizan:explain.`;
 
 runHookSafely(() => {
   readHookInput();

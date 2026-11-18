@@ -6,7 +6,9 @@ import { runDoctor } from './commands/doctor.mjs';
 import { runHandoff } from './commands/handoff.mjs';
 import { runConcepts, runUnderstood } from './commands/learning.mjs';
 import { runInit } from './commands/init.mjs';
-import { runDecision, runLog, runRule } from './commands/records.mjs';
+import { runDecision, runLog } from './commands/records.mjs';
+import { runRule } from './commands/rules.mjs';
+import { runCauses } from './commands/causes.mjs';
 import { runDigest, runStatus, runWhoami } from './commands/reports.mjs';
 import { runQuestions } from './commands/questions.mjs';
 import { runScope } from './commands/scope.mjs';
@@ -22,7 +24,8 @@ const COMMANDS = {
   questions: { run: runQuestions, usage: 'questions [list] | add <question> --category <category> --options "a | b" --recommend <option> --why <why> | posted --link <url> | answer <Q-id> --by <who> --answer <what they said> --decision <what you will do> --link <url>' },
   understood: { run: runUnderstood, usage: 'understood <what the person explained back and what was corrected> | understood --skipped <reason>' },
   concepts: { run: runConcepts, usage: 'concepts [list] | add <term> --explain <two plain sentences>' },
-  rule: { run: runRule, usage: 'rule add <rule text>' },
+  rule: { run: runRule, usage: 'rule [list] | add <rule text> --why <problem it prevents> [--from <task id>] | held <id> <what it prevented> | recurred <id> <how the problem came back> | retire <id> <reason>' },
+  causes: { run: runCauses, usage: 'causes [words to search for]' },
   status: { run: runStatus, usage: 'status' },
   digest: { run: runDigest, usage: 'digest [--days 7]' },
   handoff: { run: runHandoff, usage: 'handoff' },

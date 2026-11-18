@@ -1,7 +1,7 @@
 import { extname } from 'node:path';
 import { matchesAnyGlob } from './glob.mjs';
 
-const MIZAN_CONTROL_FILES = ['.mizan/config.json', '.mizan/tasks/*/state.json', '.mizan/.local/**'];
+const MIZAN_CONTROL_FILES = ['.mizan/config.json', '.mizan/rules.json', '.mizan/tasks/*/state.json', '.mizan/.local/**'];
 
 export function isTestFile(relativePath, config) {
   return matchesAnyGlob(relativePath, config.paths.tests);

@@ -97,6 +97,12 @@ const PATTERN_RULES = [
   {
     decision: 'ask',
     category: 'mizan-control',
+    pattern: /\bmizan\s+rule\s+retire\b/,
+    reason: 'Retiring a project rule changes how Mizan works for the whole team. The user decides.',
+  },
+  {
+    decision: 'ask',
+    category: 'mizan-control',
     pattern: /\bmizan\s+understood\b/,
     reason: 'This records that the person understood the change, or skipped the check. Only they can confirm it.',
   },

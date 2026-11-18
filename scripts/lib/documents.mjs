@@ -3,11 +3,11 @@ import { existsSync, readFileSync } from 'node:fs';
 export const UNFILLED_MARKER = '(fill in)';
 
 export const REQUIRED_SECTIONS = {
-  plan: ['Goal', 'Acceptance criteria', 'Approach', 'Alternatives considered', 'Existing code to reuse', 'Files', 'Tests', 'User experience', 'Security', 'Decisions and questions', 'Approval'],
+  plan: ['Goal', 'Acceptance criteria', 'Approach', 'Alternatives considered', 'Existing code to reuse', 'Files', 'Tests', 'Predicted effect', 'User experience', 'Security', 'Decisions and questions', 'Approval'],
   changeNote: ['In one sentence', 'What changed', 'Why', 'Where', 'How it works', 'How to check it yourself', 'Security', 'Risks and follow-ups', 'If someone asks you'],
-  rca: ['Symptom', 'Reproduction', 'Evidence', 'Timeline', 'Root cause', 'Why it was not caught', 'Fix', 'Prevention'],
+  rca: ['Symptom', 'Reproduction', 'Evidence', 'Timeline', 'Root cause', 'Root cause label', 'Why it was not caught', 'Fix', 'Prevention'],
   qa: ['Result', 'Flows checked', 'Console and network', 'Layouts checked', 'Accessibility', 'Screenshots'],
-  review: ['Result', 'Blocking findings', 'Non-blocking findings', 'Security'],
+  review: ['Result', 'Acceptance criteria', 'Prediction check', 'Blocking findings', 'Non-blocking findings', 'Security'],
   context: ['Sources checked', 'What is being asked for', 'Requirements found', 'Decisions already made', 'Open questions and conflicts', 'Sensitive data'],
 };
 
@@ -47,6 +47,11 @@ export function findDocumentProblems(filePath, documentKind) {
     }
   }
   return problems;
+}
+
+export function readSection(filePath, heading) {
+  if (!existsSync(filePath)) return null;
+  return parseSections(readFileSync(filePath, 'utf8')).get(heading) ?? null;
 }
 
 export function readResultLine(filePath) {

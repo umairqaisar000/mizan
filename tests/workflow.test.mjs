@@ -83,7 +83,7 @@ test('a feature task moves through every phase with its gates enforced', () => {
   assert.match(unfilledPlan.output, /"## Goal" is not filled in/);
   assert.match(unfilledPlan.output, /No files are in scope/);
 
-  writeProjectFile(`${taskFolder}/plan.md`, filledDocument(['Goal', 'Acceptance criteria', 'Approach', 'Alternatives considered', 'Existing code to reuse', 'Files', 'Tests', 'User experience', 'Security', 'Decisions and questions', 'Approval']));
+  writeProjectFile(`${taskFolder}/plan.md`, filledDocument(['Goal', 'Acceptance criteria', 'Approach', 'Alternatives considered', 'Existing code to reuse', 'Files', 'Tests', 'Predicted effect', 'User experience', 'Security', 'Decisions and questions', 'Approval']));
   runCli('scope', 'add', 'src/sum.mjs', '--reason', 'implements the sum');
   runCli('task', 'set-ui', 'no');
   assert.equal(runCli('task', 'next').exitCode, 0);
@@ -120,7 +120,7 @@ test('a feature task moves through every phase with its gates enforced', () => {
   writeProjectFile(`${taskFolder}/qa.md`, '## Result\n\nNOT_APPLICABLE: no user interface.\n');
   assert.equal(runCli('task', 'next').exitCode, 0);
 
-  writeProjectFile(`${taskFolder}/review.md`, '## Result\n\nPASS\n\n## Blocking findings\n\nnone\n\n## Non-blocking findings\n\nnone\n\n## Security\n\nNo input handling.\n');
+  writeProjectFile(`${taskFolder}/review.md`, '## Result\n\nPASS\n\n## Acceptance criteria\n\n1. MET: the add test passes.\n\n## Prediction check\n\nHELD: the add test goes from failing to passing.\n\n## Blocking findings\n\nnone\n\n## Non-blocking findings\n\nnone\n\n## Security\n\nNo input handling.\n');
   const toDocument = runCli('task', 'next');
   assert.equal(toDocument.exitCode, 0, toDocument.output);
   assert.ok(existsSync(join(projectRoot, `.mizan/changes/${taskId}.md`)));

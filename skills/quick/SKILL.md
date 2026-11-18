@@ -22,5 +22,5 @@ If `mizan task start` printed "Gather context first", read only the ticket yours
 1. `mizan task start <slug> --title "<title>" --kind quick`. Fill in the plan yourself, briefly: one line per section is fine. Search for existing code first. Tell the user the plan in three lines and get a yes (in auto mode, state it and continue). Register scope, set UI yes or no, then `mizan task next`.
 2. Write the failing test yourself (follow `.mizan/.local/standards/testing.md`), then `mizan task next`.
 3. Implement (follow `.mizan/.local/standards/code.md`), then `mizan task next`.
-4. Send `mizan:code-reviewer` the task id. If the change touches input handling, output rendering or config, also send `mizan:security-reviewer`. Write `review.md`, then `mizan task next`.
+4. Send `mizan:code-reviewer` the task id. Write its Acceptance criteria and Prediction check into `review.md` too. If the change touches input handling, output rendering or config, also send `mizan:security-reviewer`. Write `review.md`, then `mizan task next`.
 5. Write the change note yourself, keeping it short but complete, including "If someone asks you". Follow the teach-back and learning notes steps of /mizan:build phase 6, keeping the teach-back to one or two questions. Then `mizan task next`.

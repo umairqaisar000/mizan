@@ -23,6 +23,8 @@ import {
   taskFile,
 } from '../lib/tasks.mjs';
 import { writeTemplateIfMissing } from '../lib/templates.mjs';
+import { writeJsonFile } from '../lib/json-files.mjs';
+import { describeUsage } from '../lib/usage.mjs';
 import { pendingAutoDecisions } from './decisions.mjs';
 import { isWaitingOnTracker } from './questions.mjs';
 import { writeAutomaticHandoff } from './handoff.mjs';
@@ -152,6 +154,7 @@ const TASK_SUBCOMMANDS = {
     const reason = requireValue(reasonWords.join(' '), 'reason');
     saveTask(paths, { ...task, closedAt: isoTimestamp(), abandonedReason: reason });
     clearActiveTask(paths);
+    writeJsonFile(paths.recentlyClosed, { taskId: task.id });
     appendLogEntry(paths, config, { type: 'task-abandoned', summary: `Abandoned: ${task.title} (${reason})`, taskId: task.id, ticket: task.ticket, files: task.touchedFiles });
     writeAutomaticHandoff(context);
     return `Task ${task.id} was abandoned. Files touched so far: ${task.touchedFiles.join(', ') || 'none'}.`;
@@ -191,6 +194,7 @@ function closeTask(context, task) {
   const closed = { ...task, closedAt: isoTimestamp() };
   saveTask(paths, closed);
   clearActiveTask(paths);
+  writeJsonFile(paths.recentlyClosed, { taskId: task.id });
   const notePath = changeNotePath(paths, task.id);
   appendLogEntry(paths, config, {
     type: 'task-closed',
@@ -201,7 +205,8 @@ function closeTask(context, task) {
     details: existsSync(notePath) ? { changeNote: toProjectRelative(paths.projectRoot, notePath) } : null,
   });
   writeAutomaticHandoff(context);
-  const summary = `Task ${task.id} is done and logged. Change note: ${existsSync(notePath) ? toProjectRelative(paths.projectRoot, notePath) : 'none (light mode)'}.`;
+  const costLine = config.log.trackUsage ? ` Cost so far: ${describeUsage(task.usage)}. The final figure is logged when this turn ends.` : '';
+  const summary = `Task ${task.id} is done and logged. Change note: ${existsSync(notePath) ? toProjectRelative(paths.projectRoot, notePath) : 'none (light mode)'}.${costLine}`;
   return task.mode === 'auto' ? `${summary}${autoModeReport(paths, task)}` : summary;
 }
 

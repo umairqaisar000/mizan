@@ -20,7 +20,13 @@ Check:
 
 A finding is blocking if it is a bug, a security issue, drift, duplication, or breaks a "must" in the standards.
 
+Also check the plan's promises, not just the code:
+- Acceptance criteria: for each one, is it actually met? Find the test or behaviour that proves it. Passing tests do not count if they do not test what the criterion asks. A feasible but clearly wrong result (works, but not what was asked) is NOT MET.
+- Predicted effect: for each prediction, did it hold? Compare with the test results and the diff.
+
 Return:
 RESULT: PASS or CHANGES_NEEDED
+Acceptance criteria: one line each, "<n>. MET: <evidence>" or "<n>. NOT MET: <why>". Any NOT MET means CHANGES_NEEDED.
+Prediction check: one line each, "HELD: <prediction>" or "MISSED: <prediction>, actually <what happened>".
 Blocking findings: numbered, each with file:line, the problem, and the fix.
 Non-blocking findings: numbered, brief.

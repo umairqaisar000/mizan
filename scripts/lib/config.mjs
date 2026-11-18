@@ -111,6 +111,7 @@ export const DEFAULT_CONFIG = {
   },
   log: {
     includeEmail: false,
+    trackUsage: true,
   },
   learning: {
     teachBack: 'offer',

@@ -30,6 +30,10 @@ Task: {{taskId}} | Kind: {{kind}} | Mode: {{mode}} | Ticket: {{ticket}} | Starte
 
 (fill in) The test cases: happy path, edge cases, error states, permissions, and the end-to-end flow if there is a UI.
 
+## Predicted effect
+
+(fill in) Written before any code, so it can be checked afterwards: which tests will fail now and pass after the change, which behaviour users will see change, and what must stay exactly the same.
+
 ## User experience
 
 (fill in) For UI work: loading, empty, error and success states, keyboard and screen reader behaviour, mobile and desktop layout. Write "No UI change" otherwise.

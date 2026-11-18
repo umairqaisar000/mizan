@@ -1,10 +1,12 @@
 import { join } from 'node:path';
-import { findDocumentProblems, readResultLine } from './documents.mjs';
+import { findDocumentProblems, readResultLine, readSection } from './documents.mjs';
 import { isoTimestamp } from './dates.mjs';
 import { runShellCommand } from './shell.mjs';
 import { taskFile } from './tasks.mjs';
 
-const RCA_SECTIONS_NEEDED_BEFORE_PLANNING = ['Symptom', 'Reproduction', 'Evidence', 'Root cause'];
+const RCA_SECTIONS_NEEDED_BEFORE_PLANNING = ['Symptom', 'Reproduction', 'Evidence', 'Root cause', 'Root cause label'];
+const UNMET_CRITERION = /\bNOT\s+MET\b/i;
+const MET_CRITERION = /\bMET\b/i;
 
 export function changeNotePath(paths, taskId) {
   return join(paths.changes, `${taskId}.md`);
@@ -82,6 +84,7 @@ const GATES_BY_PHASE_BEING_LEFT = {
     const problems = findDocumentProblems(reviewFile, 'review');
     const result = readResultLine(reviewFile);
     if (result !== 'PASS') problems.push(`Review result is "${result ?? 'missing'}". Fix the blocking findings and review again.`);
+    problems.push(...findUnmetCriteria(readSection(reviewFile, 'Acceptance criteria')));
     if (problems.length > 0) return { problems, evidence: null };
     return checkEverythingIsGreen(context);
   },
@@ -98,6 +101,15 @@ const GATES_BY_PHASE_BEING_LEFT = {
     return { problems, evidence: null };
   },
 };
+
+function findUnmetCriteria(section) {
+  if (section === null) return [];
+  const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
+  const unmet = lines.filter((line) => UNMET_CRITERION.test(line));
+  if (unmet.length > 0) return unmet.map((line) => `Acceptance criterion not met: ${line}. Passing tests are not enough: fix it or agree a change to the plan with the user.`);
+  if (!lines.some((line) => MET_CRITERION.test(line))) return ['Mark each acceptance criterion in review.md as MET or NOT MET, with evidence.'];
+  return [];
+}
 
 function checkEverythingIsGreen({ paths, config }) {
   const checks = [

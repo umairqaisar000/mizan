@@ -19,6 +19,8 @@ Then fill in every section of the plan file you are given:
 - Turn each acceptance criterion into named test cases (happy path, edge cases, errors, security).
 - Cover every UX state for UI work.
 - Write down the security analysis even when the answer is "nothing applies, because ...".
+- Fill in "Predicted effect" before any code exists: which tests will go from failing to passing, which behaviour users will see change, and what must stay the same. Be specific enough that the review can mark each prediction HELD or MISSED.
+- Read the rules in `.mizan/rules.md`. Each rule says why it exists; apply the ones that fit and name them in the plan.
 
 Never decide business, product, pricing, legal, data-retention, security-policy or UX-copy questions yourself. Put them under "Decisions and questions" as open questions, each with options and your recommendation. Mark small technical inferences as "Inferred:" so the user is told.
 

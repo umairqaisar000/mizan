@@ -106,6 +106,25 @@ Claude does most of the work, so Mizan makes sure the person running it can expl
 - **`/mizan:explain`:** ask about any task, file, ticket or period and get a plain explanation with references to the records.
 - **Learning notes:** concepts you met during a task are explained in two sentences in `~/.mizan/learning.md`. It stays on your computer, and nothing is repeated.
 
+## Learning from every task
+
+Mizan keeps a record of why things were done and whether they worked, so lessons survive new tasks, new people and new models.
+
+- **Predict, then check:** every plan says, before any code, which tests will start passing and what behaviour will change. The review marks each prediction HELD or MISSED, and misses are logged and shown in `/mizan:digest`.
+- **Done means the goal is met:** the review marks every acceptance criterion MET or NOT MET with evidence. The task cannot pass review while any criterion is NOT MET, even when every test is green.
+- **Rules with reasons:** `/mizan:learn` saves each rule with the problem it prevents. Rules build a track record (`mizan rule held`, `mizan rule recurred`), and `/mizan:doctor` flags rules to review: ones whose problem keeps coming back, ones learned with a different model than the team now uses, and ones that have not prevented anything in 60 days. Retiring a rule always needs a person.
+- **Root causes remembered:** every RCA gets a short root cause label. Before a new investigation, `mizan causes <words>` finds the same cause in earlier fixes, and causes that keep coming back are flagged in the doctor and the digest.
+
+## What each task costs
+
+Mizan records the tokens each task used, including its subagents, and estimates the cost at Anthropic's API list prices. It reads Claude Code's own session transcript when each turn ends, so nothing extra is sent anywhere.
+
+- `/mizan:status` shows the cost so far of the active task.
+- When a task closes or is abandoned, the audit log gets a `task-cost` entry with the tokens and the estimate, by model and by person.
+- `/mizan:digest` totals cost per task and per person.
+- On a Claude subscription there is no per-token bill: read the estimate as how much of your usage the task took.
+- Turn it off with `"log": { "trackUsage": false }`.
+
 ## Trackers
 
 Mizan works with the tracker your team uses. Set it once in `.mizan/config.json`:

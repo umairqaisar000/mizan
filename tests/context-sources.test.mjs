@@ -37,7 +37,7 @@ function setContextSources(sources) {
 }
 
 function filledPlanSections() {
-  return ['Goal', 'Acceptance criteria', 'Approach', 'Alternatives considered', 'Existing code to reuse', 'Files', 'Tests', 'User experience', 'Security', 'Decisions and questions', 'Approval']
+  return ['Goal', 'Acceptance criteria', 'Approach', 'Alternatives considered', 'Existing code to reuse', 'Files', 'Tests', 'Predicted effect', 'User experience', 'Security', 'Decisions and questions', 'Approval']
     .map((heading) => `## ${heading}\n\nDone.\n`).join('\n');
 }
 

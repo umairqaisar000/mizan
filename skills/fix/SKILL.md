@@ -25,12 +25,12 @@ If `mizan task start` printed "Gather context first", send the `mizan:context-ga
 
 ## 1. Investigate
 - Start: `mizan task start <slug> --title "<title>" --kind fix [--ticket <ID>]`. This creates the RCA file in `.mizan/rca/`.
-- Send `mizan:investigator` the bug report, the ticket text, and the RCA path.
+- Send `mizan:investigator` the bug report, the ticket text, and the RCA path. It checks `mizan causes` first for the same cause in earlier fixes and labels this one.
 - If the investigator cannot prove the cause, tell the user exactly what evidence is missing and ask for it. Block the task while waiting. Never guess, and never touch production systems without the user's explicit go-ahead.
 - Show the user the root cause in two sentences with the evidence, and the confidence. In auto mode with asking on the ticket, this is the checkpoint: ask the important questions on the ticket now, before planning. Then `mizan task next`.
 
 ## 2. Plan
-- Send `mizan:planner` the RCA path and the plan path. The plan must fix the root cause and list the regression test that reproduces the bug. Have `mizan:critic` check that the fix addresses the root cause and not the symptom.
+- Send `mizan:planner` the RCA path and the plan path. The plan must fix the root cause, list the regression test that reproduces the bug, and predict in "Predicted effect" exactly which symptoms and tests the fix will change. Have `mizan:critic` check that the fix addresses the root cause and not the symptom.
 - Get the user's approval, register scope, set UI yes or no, then `mizan task next`.
 
 ## 3 to 6.

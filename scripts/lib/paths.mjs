@@ -37,6 +37,7 @@ export function buildMizanPaths(projectRoot) {
     config: join(base, 'config.json'),
     profile: join(base, 'project.md'),
     rules: join(base, 'rules.md'),
+    rulesIndex: join(base, 'rules.json'),
     decisions: join(base, 'decisions.md'),
     log: join(base, 'log.jsonl'),
     changes: join(base, 'changes'),
@@ -48,6 +49,8 @@ export function buildMizanPaths(projectRoot) {
     adHocEdits: join(local, 'ad-hoc.json'),
     session: join(local, 'session.json'),
     pendingWarnings: join(local, 'warnings.json'),
+    usageCursor: join(local, 'usage-cursor.json'),
+    recentlyClosed: join(local, 'recently-closed.json'),
     cliShim: join(local, 'mizan'),
     standardsLink: join(local, 'standards'),
   };

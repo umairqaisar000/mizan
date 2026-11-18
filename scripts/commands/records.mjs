@@ -48,14 +48,3 @@ export function runDecision({ positional, flags }) {
   appendLogEntry(paths, config, { type: 'decision', summary: `${DECISION_KINDS[kind]}: ${text}${answer ? ` -> ${answer}` : ''}`, taskId: task?.id ?? null, ticket: task?.ticket ?? null });
   return 'Decision recorded in .mizan/decisions.md.';
 }
-
-export function runRule({ positional }) {
-  const [subcommand, ...ruleWords] = positional;
-  if (subcommand !== 'add') throw new Error('Use "mizan rule add <rule text>".');
-  const { paths, config } = requireInitializedContext();
-  const rule = requireValue(ruleWords.join(' '), 'rule text');
-  const author = resolveAuthor(paths.projectRoot);
-  appendFileSync(paths.rules, `- ${rule} (added ${isoDate()} by ${author.name})\n`);
-  appendLogEntry(paths, config, { type: 'rule-added', summary: `New project rule: ${rule}` });
-  return 'Rule added to .mizan/rules.md. It will be loaded at the start of every session.';
-}

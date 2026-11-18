@@ -20,6 +20,10 @@ export const LOG_ENTRY_TYPES = [
   'question-asked',
   'question-answered',
   'understanding-checked',
+  'task-cost',
+  'prediction-missed',
+  'rule-checked',
+  'rule-retired',
   'rule-added',
   'note',
 ];

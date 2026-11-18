@@ -49,7 +49,9 @@ If `mizan task start` printed "Gather context first", send the `mizan:context-ga
 - `mizan task next`.
 
 ## 5. Review
-- Send `mizan:code-reviewer` and `mizan:security-reviewer` the task id in parallel. Merge their results into `review.md`.
+- Send `mizan:code-reviewer` and `mizan:security-reviewer` the task id in parallel. Merge their results into `review.md`, including the Acceptance criteria (each MET or NOT MET with evidence) and the Prediction check. The gate refuses to pass while any criterion is NOT MET.
+- For each MISSED prediction, run `mizan log "Prediction missed: <prediction>, actually <what happened>" --type prediction-missed`.
+- If a project rule stopped a mistake in this task, run `mizan rule held <id> "<what it prevented>"`. If a problem a rule was meant to prevent happened anyway, run `mizan rule recurred <id> "<what happened>"` and tell the user.
 - Send blocking findings to the implementer, then review again. Show non-blocking ones to the user.
 - If a finding needs a new or changed test, tests are locked: ask the user, then run `mizan task back test "<reason>"`. Mizan asks the user to confirm, and every gate after the test phase runs again.
 - `mizan task next`.

@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { TRACKERS, isTrackerUsed } from '../lib/config.mjs';
 import { loadMizanContext } from '../lib/context.mjs';
 import { isAuthorKnown, resolveAuthor } from '../lib/identity.mjs';
+import { rulesNeedingReview } from './rules.mjs';
+import { recurringCauses } from './causes.mjs';
 
 const MINIMUM_NODE_MAJOR_VERSION = 18;
 
@@ -19,6 +21,7 @@ export function runDoctor() {
   const results = [];
   const record = (ok, label, advice = null) => results.push({ ok, label, advice });
   const claudeChecks = [];
+  const reviews = [];
 
   const nodeMajor = Number(process.versions.node.split('.')[0]);
   record(nodeMajor >= MINIMUM_NODE_MAJOR_VERSION, `Node ${process.versions.node}`, `Mizan needs Node ${MINIMUM_NODE_MAJOR_VERSION} or newer.`);
@@ -40,6 +43,12 @@ export function runDoctor() {
     const hasPlaywright = existsSync(join(paths.projectRoot, 'node_modules', '@playwright', 'test'));
     record(hasPlaywright, 'Playwright installed', 'Optional but recommended for end-to-end tests: ask before adding @playwright/test.');
     if (isTrackerUsed(config)) checkTrackerConnection(TRACKERS[config.tracker.name], record, claudeChecks);
+    for (const { rule, reasons } of rulesNeedingReview(paths)) {
+      reviews.push(`Rule ${rule.id} "${rule.text}": ${reasons.join('; ')}. Ask the user whether to keep, revise or retire it.`);
+    }
+    for (const [label, entries] of recurringCauses(paths)) {
+      reviews.push(`Root cause "${label}" has come up ${entries.length} times (${entries.map((entry) => entry.taskId).join(', ')}). Consider a rule, a shared helper or a test that prevents this kind of bug.`);
+    }
   }
 
   for (const tool of OPTIONAL_TOOLS) {
@@ -49,6 +58,7 @@ export function runDoctor() {
   const lines = results.map(({ ok, label, advice }) => `${ok ? 'OK  ' : 'FIX '} ${label}${!ok && advice ? `\n      ${advice}` : ''}`);
   lines.push('', 'Browser QA uses the Chrome DevTools MCP server bundled with the plugin. Run /mcp to confirm it is connected.');
   lines.push(...claudeChecks.map((check) => `CHECK ${check}`));
+  lines.push(...reviews.map((review) => `REVIEW ${review}`));
   return lines.join('\n');
 }
 

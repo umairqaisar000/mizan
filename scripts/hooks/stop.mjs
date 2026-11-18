@@ -7,6 +7,7 @@ import { readJsonFileOrFallback, writeJsonFile } from '../lib/json-files.mjs';
 import { changeNotePath } from '../lib/phase-gates.mjs';
 import { runShellCommand } from '../lib/shell.mjs';
 import { PHASES_THAT_NEED_GREEN_TESTS, loadActiveTask } from '../lib/tasks.mjs';
+import { recordTaskUsage } from '../lib/task-usage.mjs';
 
 const BLOCK_HINT = 'If you are waiting for the user, run ".mizan/.local/mizan task block <your question>" first, then end your turn.';
 
@@ -17,6 +18,7 @@ runHookSafely(() => {
   const { paths, config, policy } = context;
 
   logEditsMadeOutsideATask(paths, config);
+  recordUsageWithoutBlocking(context, input.transcript_path);
 
   const task = loadActiveTask(paths);
   const isAutoTask = Boolean(task && task.mode === 'auto' && !task.blocked);
@@ -64,6 +66,14 @@ function logEditsMadeOutsideATask(paths, config) {
     files,
   });
   rmSync(paths.adHocEdits, { force: true });
+}
+
+function recordUsageWithoutBlocking(context, transcriptPath) {
+  try {
+    recordTaskUsage(context, transcriptPath);
+  } catch {
+    return;
+  }
 }
 
 function resetRetries(paths) {

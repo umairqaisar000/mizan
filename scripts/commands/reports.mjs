@@ -4,6 +4,8 @@ import { daysAgo, isoDate } from '../lib/dates.mjs';
 import { resolveAuthor } from '../lib/identity.mjs';
 import { readJsonFileOrFallback } from '../lib/json-files.mjs';
 import { loadActiveTask, nextPhaseFor } from '../lib/tasks.mjs';
+import { describeUsage, formatTokenCount } from '../lib/usage.mjs';
+import { recurringCauses } from './causes.mjs';
 
 const DEFAULT_DIGEST_DAYS = 7;
 
@@ -26,6 +28,7 @@ export function runStatus() {
       task.ticket ? `Ticket: ${task.ticket}` : null,
       `In scope: ${task.plannedFiles.map((planned) => planned.path).join(', ') || 'none yet'}`,
       `Touched: ${task.touchedFiles.join(', ') || 'none yet'}`,
+      config.log.trackUsage ? `Cost so far: ${describeUsage(task.usage)}` : null,
     );
     const outOfScope = task.touchedFiles.filter((file) => !task.plannedFiles.some((planned) => planned.path === file));
     if (outOfScope.length > 0) lines.push(`Touched outside the plan: ${outOfScope.join(', ')}`);
@@ -49,6 +52,13 @@ export function runDigest({ flags }) {
   const decisions = entries.filter((entry) => entry.type === 'decision');
   const abandoned = entries.filter((entry) => entry.type === 'task-abandoned');
   const byAuthor = groupCount(entries, (entry) => entry.author);
+  const costs = entries.filter((entry) => entry.type === 'task-cost');
+  const costByAuthor = new Map();
+  for (const entry of costs) {
+    const current = costByAuthor.get(entry.author) ?? { tokens: 0, usd: 0, tasks: 0 };
+    costByAuthor.set(entry.author, { tokens: current.tokens + (entry.details?.totalTokens ?? 0), usd: current.usd + (entry.details?.estimatedCostUsd ?? 0), tasks: current.tasks + 1 });
+  }
+  const totalCost = costs.reduce((sum, entry) => sum + (entry.details?.estimatedCostUsd ?? 0), 0);
 
   return [
     `# Mizan digest: ${since} to ${isoDate()}`,
@@ -66,6 +76,16 @@ export function runDigest({ flags }) {
     '',
     '## Edits outside a task',
     ...listOrNone(adHoc.map((entry) => `- ${entry.date} ${entry.author}: ${entry.files.join(', ')}`)),
+    '',
+    `## Cost (estimated at API list prices, total about $${totalCost.toFixed(2)})`,
+    ...listOrNone(costs.map((entry) => `- ${entry.date} ${entry.author}: ${entry.summary.replace(/^Cost of /, '')}`)),
+    ...[...costByAuthor.entries()].map(([author, cost]) => `- ${author} in total: ${cost.tasks} task(s), ${formatTokenCount(cost.tokens)} tokens, about $${cost.usd.toFixed(2)}`),
+    '',
+    '## Predictions that missed',
+    ...listOrNone(entries.filter((entry) => entry.type === 'prediction-missed').map((entry) => `- ${entry.date} ${entry.author}: ${entry.summary}${entry.taskId ? ` [${entry.taskId}]` : ''}`)),
+    '',
+    '## Root causes seen more than once (all time)',
+    ...listOrNone(recurringCauses(paths).map(([label, causeEntries]) => `- ${label}: ${causeEntries.length} times (${causeEntries.map((entry) => entry.taskId).join(', ')})`)),
     '',
     '## Activity by person',
     ...listOrNone([...byAuthor.entries()].map(([author, count]) => `- ${author}: ${count} logged events`)),

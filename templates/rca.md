@@ -12,7 +12,7 @@ Task: {{taskId}} | Ticket: {{ticket}} | Opened {{date}} by {{author}}
 
 ## Evidence
 
-(fill in) Logs, console errors, network requests, stack traces, git history, and the test or command output that shows the fault. Quote only what matters.
+(fill in) Logs, console errors, network requests, stack traces, git history, and the test or command output that shows the fault. Quote only what matters. If `mizan causes` found the same cause before, say where and what was tried then.
 
 ## Timeline
 
@@ -21,6 +21,10 @@ Task: {{taskId}} | Ticket: {{ticket}} | Opened {{date}} by {{author}}
 ## Root cause
 
 (fill in) The single underlying cause, proven by the evidence. Walk the "why" chain until you reach something that, if changed, makes this class of bug impossible. A symptom is not a root cause.
+
+## Root cause label
+
+(fill in) One short lowercase label for this kind of cause, for example `rounding-each-part` or `missing-null-check`. Run `mizan causes` first and reuse an existing label when it is the same cause.
 
 ## Why it was not caught
 
